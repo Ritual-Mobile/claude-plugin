@@ -198,10 +198,32 @@ degrades cleanly when Ritual isn't connected. If none fit, defer to
 `);
 }
 
-// merged allowlist = existing ∪ snapshot (preserve product/marketing entries).
+// allowlist = snapshot ∪ what the hand-authored leaf registries actually use
+// (preserves product/marketing entries; a jtbd retired upstream and used by no
+// registry drops out instead of lingering forever).
+function registryUsage() {
+  const jtbds = new Set();
+  const people = new Set();
+  const walk = (dir) => {
+    if (!existsSync(dir)) return;
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name === 'leaf-registry.json') {
+        for (const l of readJson(p).leaves ?? []) {
+          if (l.jtbd_id) jtbds.add(l.jtbd_id);
+          if (l.persona) people.add(l.persona);
+        }
+      }
+    }
+  };
+  walk(join(ROOT, 'plugins'));
+  return { jtbds, people };
+}
 const existingAllow = readJson(ALLOWLIST);
-const jtbd_ids = [...new Set([...existingAllow.jtbd_ids, ...snapshot.allowlist.jtbdIds])].sort();
-const personas = [...new Set([...existingAllow.personas, ...snapshot.allowlist.personas])].sort();
+const used = registryUsage();
+const jtbd_ids = [...new Set([...snapshot.allowlist.jtbdIds, ...used.jtbds])].sort();
+const personas = [...new Set([...snapshot.allowlist.personas, ...used.people])].sort();
 files.set(join('canonical', 'jtbd-allowlist.json'), JSON.stringify({
   _comment: existingAllow._comment,
   jtbd_ids,
@@ -232,6 +254,25 @@ files.set(join('.claude-plugin', 'marketplace.json'), JSON.stringify({
   plugins: [...(base ? [base] : []), ...devEntries, ...kept],
 }, null, 2) + '\n');
 
+// ---- orphans: files inside a generated pack dir that the snapshot no longer
+// emits (e.g. a command whose job was retired upstream). Those dirs are 100%
+// generated, so anything not in `files` is stale by construction.
+function orphanFiles() {
+  const out = [];
+  const walk = (rel) => {
+    const abs = join(ROOT, rel);
+    if (!existsSync(abs)) return;
+    for (const e of readdirSync(abs, { withFileTypes: true })) {
+      const child = join(rel, e.name);
+      if (e.isDirectory()) walk(child);
+      else if (!files.has(child)) out.push(child);
+    }
+  };
+  for (const pack of snapshot.personas) walk(join('plugins', pack.persona));
+  return out;
+}
+const orphans = orphanFiles();
+
 // ---- apply or check ----
 if (process.argv.includes('--check')) {
   const stale = [];
@@ -243,6 +284,7 @@ if (process.argv.includes('--check')) {
   for (const name of REMOVED_PACKS) {
     if (existsSync(join(ROOT, 'plugins', name))) stale.push(`plugins/${name} (should be removed)`);
   }
+  for (const rel of orphans) stale.push(`${rel} (no longer in the snapshot — should be removed)`);
   if (stale.length) {
     fail('packs are STALE — regenerate with `node scripts/generate-packs.mjs`:\n  ' + stale.join('\n  '));
   }
@@ -254,6 +296,7 @@ for (const name of REMOVED_PACKS) {
   const dir = join(ROOT, 'plugins', name);
   if (existsSync(dir)) rmSync(dir, { recursive: true, force: true });
 }
+for (const rel of orphans) rmSync(join(ROOT, rel), { force: true });
 for (const [rel, content] of files) {
   const abs = join(ROOT, rel);
   mkdirSync(dirname(abs), { recursive: true });
@@ -261,5 +304,7 @@ for (const [rel, content] of files) {
 }
 console.log(
   `✓ generated ${snapshot.personas.length} dev packs (${snapshot.commandCount} commands), ` +
-    `removed [${[...REMOVED_PACKS].join(', ')}], updated marketplace + allowlist.`,
+    `removed [${[...REMOVED_PACKS].join(', ')}]${
+      orphans.length ? ` + ${orphans.length} orphan file(s): ${orphans.join(', ')}` : ''
+    }, updated marketplace + allowlist.`,
 );

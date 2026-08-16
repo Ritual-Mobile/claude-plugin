@@ -12,7 +12,6 @@ When a task looks like Developer work, the right entry is a **job-native command
 (user-invoked, no guessing). Suggest the closest match:
 
 - `/developer:understand-codebase` — Understand Codebase Area
-- `/developer:plan-implementation` — Create Implementation Plan
 - `/developer:integrate-api` — Integrate Api
 - `/developer:build-docs-site` — Create Docs Site
 - `/developer:refactor-code` — Refactor Code

@@ -1,0 +1,30 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Packs are generated from canonical/plugin-snapshot.json — never hand-edited.
+      # Fails if any committed pack file drifts from the snapshot, or if a pack dir
+      # still holds a command the snapshot no longer emits.
+      - name: packs match the snapshot
+        run: node scripts/generate-packs.mjs --check
+
+      # Hand-authored leaf registries (product/marketing) may only use canonical
+      # jtbd_ids and personas.
+      - name: leaf registries are canonical
+        run: node scripts/validate-leaves.mjs
+
+      # NOTE: snapshot-vs-upstream drift is NOT checked here — the monorepo is
+      # private and unreachable from this repo's CI. Maintainers run
+      # `scripts/sync-snapshot.mjs --check` locally against a checkout.
