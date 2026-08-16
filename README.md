@@ -29,7 +29,7 @@ Ritual brief (not code) before you build.
 Development-function packs:
 
 ```
-/plugin install developer@ritual            # /developer:plan-implementation, :refactor-code, :debug-production-issue, …
+/plugin install developer@ritual            # /developer:understand-codebase, :refactor-code, :debug-production-issue, …
 /plugin install frontend-developer@ritual   # /frontend-developer:build-frontend-feature
 /plugin install backend-developer@ritual    # /backend-developer:define-service-contract
 /plugin install eng-lead@ritual             # /eng-lead:design-technical-approach

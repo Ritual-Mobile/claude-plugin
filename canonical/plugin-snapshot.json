@@ -1,9 +1,9 @@
 {
   "_generated": "DO NOT EDIT — generated from work-graph.ts by scripts/emit-plugin-snapshot.mjs; consumed by the ritual-work/claude-plugin generator.",
-  "sourceSha": "d8d3c9bd8b0a35f4",
+  "sourceSha": "5595307a3c452f9e",
   "function": "development",
   "personaCount": 5,
-  "commandCount": 19,
+  "commandCount": 18,
   "personas": [
     {
       "persona": "developer",
@@ -22,21 +22,6 @@
             "extension points",
             "gotchas + tech debt",
             "where to start"
-          ],
-          "composedSectionCount": 18
-        },
-        {
-          "commandName": "plan-implementation",
-          "jtbdId": "create-implementation-plan",
-          "mode": "discovery",
-          "deliverableTemplate": "Implementation Plan",
-          "sections": [
-            "scope + assumptions",
-            "work breakdown",
-            "dependencies + ordering",
-            "implementation steps",
-            "testing + verification",
-            "rollout + done criteria"
           ],
           "composedSectionCount": 18
         },
@@ -335,7 +320,6 @@
       "build-mcp-tool",
       "build-technical-spike",
       "create-docs-site",
-      "create-implementation-plan",
       "debug-production-issue",
       "design-technical-approach",
       "improve-performance",
