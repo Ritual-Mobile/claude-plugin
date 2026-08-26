@@ -54,7 +54,13 @@ if (!existsSync(join(src, 'SKILL.md'))) {
 // internal authoring material and stays behind.
 const SHIP = ['SKILL.md', 'references', '.ritual-bundle.json'];
 
-const dest = join(REPO, 'plugins', 'ritual', 'skills', 'ritual');
+// The skill ships as `build` (not `ritual`): plugin skills render as
+// <plugin>:<skill>, so the canonical name would read /ritual:ritual. Same
+// rename the chatgpt adapter makes. The dispatcher's other subcommands are
+// exposed as thin plugin COMMANDS in plugins/ritual/commands/ (committed,
+// not synced) that route into this skill.
+const dest = join(REPO, 'plugins', 'ritual', 'skills', 'build');
+rmSync(join(REPO, 'plugins', 'ritual', 'skills', 'ritual'), { recursive: true, force: true });
 rmSync(dest, { recursive: true, force: true });
 mkdirSync(dest, { recursive: true });
 for (const entry of SHIP) {
@@ -83,7 +89,12 @@ if (!/^channel: mcp-direct$/m.test(fm)) {
   );
   process.exit(1);
 }
-writeFileSync(skillMd, fm.replace(/^channel: mcp-direct$/m, 'channel: claude-plugin'));
+writeFileSync(
+  skillMd,
+  fm
+    .replace(/^channel: mcp-direct$/m, 'channel: claude-plugin')
+    .replace(/^name: ritual$/m, 'name: build'),
+);
 
 const stamp = /^stamp:\s*(\S+)/m.exec(fm)?.[1] ?? 'unknown';
 const cli = /^cli_version:\s*(\S+)/m.exec(fm)?.[1] ?? 'unknown';
@@ -91,5 +102,5 @@ writeFileSync(
   join(REPO, 'plugins', 'ritual', '.skill-stamp.json'),
   JSON.stringify({ stamp, cli_version: cli, channel: 'claude-plugin' }, null, 2) + '\n',
 );
-console.log(`✓ plugins/ritual/skills/ritual (stamp ${stamp}, cli ${cli}, channel claude-plugin)`);
+console.log(`✓ plugins/ritual/skills/build (stamp ${stamp}, cli ${cli}, channel claude-plugin)`);
 console.log('  next: review, bump plugins/ritual version on content change, commit.');
