@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "ritual": {
+      "type": "http",
+      "url": "https://mcp.ritualapp.cloud/mcp"
+    }
+  }
+}
