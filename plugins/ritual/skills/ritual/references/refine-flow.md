@@ -161,11 +161,11 @@ Print: "Branch: `<branch>`."
 
 **1c. Resolve the exploration via repo+branch binding.**
 
-Call `mcp__ritual__list_explorations` and look for an exploration whose repo+branch matches
+Call `mcp__plugin_ritual_ritual__list_explorations` and look for an exploration whose repo+branch matches
 the current repo+branch. Prefer explorations in state `ready`, `in_flight`, or `in_progress`.
 
 Also check `.ritual/config.json` for a pinned `explorationId` — if present, fetch it
-directly via `mcp__ritual__get_exploration` and confirm it matches. The config binding
+directly via `mcp__plugin_ritual_ritual__get_exploration` and confirm it matches. The config binding
 takes precedence over the list scan. A fresh prelogin exploration may be a draft the roster
 does not list, so the pinned `explorationId` is the reliable path.
 
@@ -269,10 +269,10 @@ nothing to sync server-side); go straight to Step 6.
 
 If an exploration id was resolved:
 
-1. **Confirm the server brief is READY.** Call `mcp__ritual__get_build_brief_status`. If it is
+1. **Confirm the server brief is READY.** Call `mcp__plugin_ritual_ritual__get_build_brief_status`. If it is
    not READY (still generating, or none exists), SKIP the sync — print one line ("Server brief
    not ready; kept the grounding local.") and continue to Step 6. Do NOT wait or poll.
-2. **Save the grounded brief back.** Call `mcp__ritual__save_reconciled_brief` with the
+2. **Save the grounded brief back.** Call `mcp__plugin_ritual_ritual__save_reconciled_brief` with the
    exploration id, `content` set to the full grounded `.ritual/build-brief.md`, and a short
    `reconciliation_summary` (e.g. "Grounded against `<branch>` @ <HEAD-SHA-short>"). Do NOT pass
    a source review id. The server snapshots the original as an immutable version, saves the

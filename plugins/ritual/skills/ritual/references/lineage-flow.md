@@ -49,7 +49,7 @@ If the list ends up empty (e.g. directory glob matched nothing, or the user's pa
 
 #### Step L2 — Query the knowledge graph
 
-Call `mcp__ritual__query_knowledge_graph(workspace_id, sources=[paths])`. This is the same tool `/ritual build`'s Steps 4 / 5 / 10 use for KG injection — the difference here is the user-facing output is the QUERY RESULT, not silent priorContext.
+Call `mcp__plugin_ritual_ritual__query_knowledge_graph(workspace_id, sources=[paths])`. This is the same tool `/ritual build`'s Steps 4 / 5 / 10 use for KG injection — the difference here is the user-facing output is the QUERY RESULT, not silent priorContext.
 
 The response shape includes:
 - `decisions[]` — each with `area`, `choice`, `sourceRecommendationId`, `recommendationStatusAtImplementation`, `relatedFiles[]`, `createdAt`, `explorationId`, `explorationName`, `prNumber`/`prUrl` (from the linked `ImplementationRecord`)
@@ -132,12 +132,12 @@ End with one cheap call-to-action. The right action depends on what the lineage 
 
 Single-tool subcommand:
 
-1. `mcp__ritual__query_knowledge_graph` (Step L2 — the whole flow hangs on this)
+1. `mcp__plugin_ritual_ritual__query_knowledge_graph` (Step L2 — the whole flow hangs on this)
 2. Agent filesystem tools (`Glob`, `Read`) for resolving directory inputs / pasted-code inputs in Step L1.
 
 Optional onward calls if the user pivots to action (Step L4):
-- `mcp__ritual__generate_build_brief` if they want the full brief with deferrals surfaced
-- `mcp__ritual__get_exploration` if they want to drill into one of the source explorations
+- `mcp__plugin_ritual_ritual__generate_build_brief` if they want the full brief with deferrals surfaced
+- `mcp__plugin_ritual_ritual__get_exploration` if they want to drill into one of the source explorations
 
 No new MCP tools required. `/ritual lineage` is a thin formatter over `query_knowledge_graph`.
 

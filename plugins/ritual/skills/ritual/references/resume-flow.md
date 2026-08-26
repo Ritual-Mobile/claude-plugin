@@ -76,7 +76,7 @@ The point: a pending sync is a stronger signal than "this exploration's state ba
 
 #### Step R2 — Surface in-flight explorations with state badges
 
-Call `mcp__ritual__list_explorations(workspace_id)`. Sort by most-recently-updated. Drop archived. Cap at 5 in the user-facing summary.
+Call `mcp__plugin_ritual_ritual__list_explorations(workspace_id)`. Sort by most-recently-updated. Drop archived. Cap at 5 in the user-facing summary.
 
 If exactly one in-flight exploration is recent and clearly the likely target, lead with it instead of forcing a picker:
 
@@ -209,9 +209,9 @@ End the flow with the same "next step" prompt `/ritual build` would have at that
 
 Read-tier subset of `/ritual build`'s tools:
 
-1. `mcp__ritual__list_workspaces` (R1, fallback only)
-2. `mcp__ritual__list_explorations` (R2 — the core read)
-3. `mcp__ritual__get_exploration` (R3, to fetch the `implementationRecord` for the branch check)
+1. `mcp__plugin_ritual_ritual__list_workspaces` (R1, fallback only)
+2. `mcp__plugin_ritual_ritual__list_explorations` (R2 — the core read)
+3. `mcp__plugin_ritual_ritual__get_exploration` (R3, to fetch the `implementationRecord` for the branch check)
 4. Whatever `/ritual build` would use from the jump-in step onward (R4)
 
 No new MCP tools required. `/ritual resume` is a thin orchestration over what already exists.

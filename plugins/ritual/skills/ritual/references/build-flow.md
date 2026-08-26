@@ -126,7 +126,7 @@ Follow `references/cli-output-contract.md` for terminal output, dense-list forma
 
 #### When the user corrects you — `record_correction`
 
-Call `mcp__ritual__record_correction` as soon as any of these happens, then carry on with the work:
+Call `mcp__plugin_ritual_ritual__record_correction` as soon as any of these happens, then carry on with the work:
 
 - the user contradicts something you asserted
 - the user says a topic or direction is out of scope
@@ -284,7 +284,7 @@ When this gate runs:
 
 **Before the Scope-entry gate is confirmed (load-bearing, forbidden behavior — this rule is internal; never name it to the user).** For `/ritual build <ask>`, `prepare_build` is the FIRST tool call, and **until the Scope-entry gate is confirmed you must NOT** mention workspace/config state or narrate where the build landed. The workspace is resolved *inside* `prepare_build`; you render its done-line only AFTER the Scope-entry gate is confirmed (Step 1). Narrating the upcoming step — e.g. *"Now I have the classification, it landed in the Payments workspace, next I'll…"* — is a forbidden process-leak: render the Scope-entry gate's prescribed copy and nothing else (no plan narration, no "I'll … next", no workspace name yet). This rule only constrains what you may say *before* confirmation — the normal gate rules govern pausing/turn-handling, unchanged.
 
-1. **Call `mcp__ritual__prepare_build`** with `raw_input` = the user's ask, verbatim, plus the signals
+1. **Call `mcp__plugin_ritual_ritual__prepare_build`** with `raw_input` = the user's ask, verbatim, plus the signals
    only you can supply (gather them first (without narrating) — the narrow exception above): `bound_workspace_id`
    from `.ritual/config.json` if the repo is bound, and `repo_key` / `repo_key_scheme` / `repo_name` /
    `branch` / `is_default_branch` from `ritual repo-key --json` if your agent can run shell + git (omit
@@ -347,7 +347,7 @@ When this gate runs:
    or API • a frontend / UI feature • a refactor, migration, or infra change • something else, in your
    own words.)
 
-   If the user ANSWERS, call `mcp__ritual__classify_request` AGAIN with the same `raw_input` plus
+   If the user ANSWERS, call `mcp__plugin_ritual_ritual__classify_request` AGAIN with the same `raw_input` plus
    `correction` = their reply (and `previous_jtbd`), then re-render: **2a** if it now matched a specific
    job, otherwise **2c**. If the user replies `proceed`, go straight to **2c** (accept the generic).
 
@@ -381,7 +381,7 @@ When this gate runs:
 
    Wait for the user's actual reply. Never infer confirmation from the original
    ask, auto-mode, or silence. `proceed` / `yes` / `ok` confirms. ANY other substantive reply is a
-   correction: call `mcp__ritual__classify_request` AGAIN with the same `raw_input`, plus
+   correction: call `mcp__plugin_ritual_ritual__classify_request` AGAIN with the same `raw_input`, plus
    `correction` (the user's words) and `previous_jtbd` (the rejected slug), then re-render step 2.
    The clarifying QUESTION (2b) is asked AT MOST ONCE per gate — if the re-classification after the
    user's answer is still generic, render **2c** (proceed as a generic `Feature Brief`); do not ask
@@ -396,7 +396,7 @@ When this gate runs:
 
 `prepare_build` already resolved the workspace and created the draft (from `workspace` + `binding` + `explorationId` in its result) — **you do NOT pick one.** After the Scope-entry gate proceeds, render a single confirmation line, act on the `binding` directive, and move on; the only pause here is the optional `change` escape, and only if the user invokes it.
 
-**Connection freshness check (one-time, warn-only).** On your FIRST MCP call this session (the `prepare_build` call at Step 0.7), also call `mcp__ritual__ping` **once** and inspect the returned identity:
+**Connection freshness check (one-time, warn-only).** On your FIRST MCP call this session (the `prepare_build` call at Step 0.7), also call `mcp__plugin_ritual_ritual__ping` **once** and inspect the returned identity:
 
 - If the response is **missing `gitSha` or `toolContractHash`**, or reports **`version: "1.0.0"`** (the legacy hardcoded value), the user is connected to an **outdated / legacy Ritual MCP** — emit exactly ONE line, then continue normally (warn-only, never block):
 
@@ -416,7 +416,7 @@ When this gate runs:
 
    Write it yourself if you have filesystem write access; otherwise show the user the JSON to save.
 
-3. **`change` — optional user-invoked workspace switch (surfaced on the Scope gate, not here).** The workspace's `change` affordance rides on the Scope-gate context line (Step 5 §5.1) — there is no separate workspace prompt. If the user replies `change` at the Scope gate, THEN: call `mcp__ritual__list_workspaces`, render the numbered picker (id, name) plus a "create new" option, and **[USER PAUSE]** for the pick. On a pick, re-run `mcp__ritual__prepare_build` with `bound_workspace_id` = the chosen workspace (`binding.action: none`); on "create new", call `mcp__ritual__create_workspace` (name after the repo, confirm it) then re-run `prepare_build` bound to it. Re-write `.ritual/config.json` to the chosen workspace, then re-render the Scope gate for the new workspace. This is the only user-invoked pause in the Step 1 → Scope span, and only when the user types `change`.
+3. **`change` — optional user-invoked workspace switch (surfaced on the Scope gate, not here).** The workspace's `change` affordance rides on the Scope-gate context line (Step 5 §5.1) — there is no separate workspace prompt. If the user replies `change` at the Scope gate, THEN: call `mcp__plugin_ritual_ritual__list_workspaces`, render the numbered picker (id, name) plus a "create new" option, and **[USER PAUSE]** for the pick. On a pick, re-run `mcp__plugin_ritual_ritual__prepare_build` with `bound_workspace_id` = the chosen workspace (`binding.action: none`); on "create new", call `mcp__plugin_ritual_ritual__create_workspace` (name after the repo, confirm it) then re-run `prepare_build` bound to it. Re-write `.ritual/config.json` to the chosen workspace, then re-render the Scope gate for the new workspace. This is the only user-invoked pause in the Step 1 → Scope span, and only when the user types `change`.
 
 **`.ritual/config.json` is committed to the repo — it is shared, not per-user.** Same model as `.eslintrc.json` or `tsconfig.json`: it binds this codebase to a Ritual workspace (`workspaceId` / `workspaceName`) so everyone working on this repo resolves the same place. It holds ONLY repo-level facts — write nothing per-user into it. Persona and template defaults are user-scoped (your Ritual account's `user.persona`, set during `ritual init`), NOT stored here; PATs and auth tokens live in `~/.config/ritual/` and never in this file.
 
@@ -531,7 +531,7 @@ Detect each item's **`source_content_type`** from format + content cues:
 
 ##### 3.5.3 — Stage each source for registration after exploration creation
 
-For each item, create a staged source record in working memory. Do **not** call `mcp__ritual__add_knowledge_source` yet because no `exploration_id` exists until exploration creation.
+For each item, create a staged source record in working memory. Do **not** call `mcp__plugin_ritual_ritual__add_knowledge_source` yet because no `exploration_id` exists until exploration creation.
 
 Staged record shape:
 
@@ -600,7 +600,7 @@ The user can always come back later with `/ritual context-pulse <exploration>` t
 
 ##### 4.1 First draft
 
-Call `mcp__ritual__generate_considerations` with:
+Call `mcp__plugin_ritual_ritual__generate_considerations` with:
 - `workspace_id`
 - `raw_input` — the user's problem/ask, **verbatim** (plus any reference context the user spontaneously supplied). **Recon does NOT feed this call (context-at-create):** sub-problems are deliberately generated from the ask alone so the first product output lands fast; repo grounding enters at Step 5.7 and reaches discovery via the persisted `additional_context`.
 - `template_id` — **OPTIONAL.** Per Step 2 (server-side template resolution), the agent does NOT pick a template_id. Omit this field unless the user explicitly passed `--template-id` on the CLI; the server resolves the right template from `user.persona` → `workspace.defaultTemplateId` → system default and uses the same resolution chain `create_exploration` will use at Step 6. Passing it explicitly only matters when overriding the default.
@@ -628,11 +628,11 @@ If `implementationCount === 0`: don't mention the KG check (silent — would jus
 
 ##### 4.2 Sub-problem refinement (only when user explicitly asks)
 
-The user may, at the Step 5 problem-statement gate, say something like "rethink the sub-problems" or "the framing is off — show me other angles." When that happens, call `mcp__ritual__refine_considerations` and re-render the sub-problem set + a fresh problem statement. In the default flow this path is unreachable; it exists for the explicit "rethink scope" escape hatch.
+The user may, at the Step 5 problem-statement gate, say something like "rethink the sub-problems" or "the framing is off — show me other angles." When that happens, call `mcp__plugin_ritual_ritual__refine_considerations` and re-render the sub-problem set + a fresh problem statement. In the default flow this path is unreachable; it exists for the explicit "rethink scope" escape hatch.
 
 **Pre-flight (mandatory):** before calling `refine_considerations`, run the change pre-flight in `references/change-preflight.md` — restate the change in the user's terms, show the exact `change_prompt` you're about to send, and wait for `yes`. This is a hard pause (even in auto-mode) and fires on every such request, including one-word ones. Do not call the tool until the user confirms.
 
-Call `mcp__ritual__refine_considerations` with:
+Call `mcp__plugin_ritual_ritual__refine_considerations` with:
 - `workspace_id`, `raw_input`, `sources` — unchanged from the generate call. Critical: pass the SAME `sources` array each iteration so the KG-injected priorContext stays consistent.
 - `template_id` — same rule as Step 4: omit unless the user explicitly overrode it. If you passed `template_id` to the original `generate_considerations` call, pass the same value here for symmetry; otherwise leave it off and let server-side resolution stay consistent across iterations.
 - `change_prompt`: the user's request verbatim
@@ -650,7 +650,7 @@ Store the final sub-problems for Step 5 — they go into `considerations[]`.
 
 ##### 5.1 First draft
 
-Call `mcp__ritual__generate_problem_statement` with:
+Call `mcp__plugin_ritual_ritual__generate_problem_statement` with:
 - `workspace_id`
 - `raw_input` (same augmented version from Step 4)
 - `considerations` (the picks from Step 4)
@@ -710,7 +710,7 @@ naming its own artifact instead.
 confirm the deliverable before anything existed to judge it against. That confirmation is gone for a
 confident classification; the correction lives here instead, where the sub-problems and the frame are
 on screen and the user can actually tell whether the deliverable fits. On `deliverable`: ask what they
-expected in one plain question, then re-call `mcp__ritual__classify_request` with `correction` = their
+expected in one plain question, then re-call `mcp__plugin_ritual_ritual__classify_request` with `correction` = their
 reply and `previous_jtbd` = the current slug, update the rail, and re-render this gate. The workspace
 stays sticky — only the job changes.
 
@@ -732,7 +732,7 @@ The numbered sub-problems are selectable at this gate. A **numeric subset pick**
 - **`keep {N,M,…}`** — keep only those; drop the rest.
 - Guard: never empty the set. If a pick would drop every sub-problem, decline in one line ("Keep at least one sub-problem.") and re-render the gate unchanged.
 
-After filtering `considerations[]` to the kept set, **re-derive the frame so it matches the narrower scope** — call `mcp__ritual__refine_problem_statement` with `considerations` = the kept set, `previous_problem_statement` = the current draft, and `change_prompt` = `"Narrow scope to these sub-problems: {kept titles}."` (This is the one refine call that SKIPS the pre-flight, per above — the pick already states the change precisely.) Then **re-render the combined Scope gate** (§5.1) with the reduced sub-problem list + the re-derived frame, and pause again. The user can narrow again, reshape with an NL edit (§5.2), or `use`.
+After filtering `considerations[]` to the kept set, **re-derive the frame so it matches the narrower scope** — call `mcp__plugin_ritual_ritual__refine_problem_statement` with `considerations` = the kept set, `previous_problem_statement` = the current draft, and `change_prompt` = `"Narrow scope to these sub-problems: {kept titles}."` (This is the one refine call that SKIPS the pre-flight, per above — the pick already states the change precisely.) Then **re-render the combined Scope gate** (§5.1) with the reduced sub-problem list + the re-derived frame, and pause again. The user can narrow again, reshape with an NL edit (§5.2), or `use`.
 
 ##### 5.1b Plugin-attached: the drawer narrows sub-problems (the GUI equivalent of `drop`/`keep`)
 
@@ -740,7 +740,7 @@ When the Ritual plugin is attached (see *Plugin-attached rendering*), the number
 
 **On `use` (plugin-attached), reconcile the drawer's STAGED EDITS before locking** — the drawer stages two things to the canonical exploration: the sub-problem `selected` set AND, via "Request adjustment," a refined `problemStatement`. The agent is the sole committer, so at `use` it **commits from the canonical state, never from chat memory** — it re-reads, reconciles, then locks. Mirror the discovery on-proceed pattern (§7.3.1b):
 
-1. Call `mcp__ritual__get_exploration(exploration_id)` and read the canonical `problemStatement` — the drawer's "Request adjustment" (or a Spark refine) may have changed it **out of band** since you rendered the frame. Call `mcp__ritual__get_considerations(exploration_id)` and read `selected`.
+1. Call `mcp__plugin_ritual_ritual__get_exploration(exploration_id)` and read the canonical `problemStatement` — the drawer's "Request adjustment" (or a Spark refine) may have changed it **out of band** since you rendered the frame. Call `mcp__plugin_ritual_ritual__get_considerations(exploration_id)` and read `selected`.
 2. If `selected` is a **strict subset** of the rendered sub-problem set (the user de-selected some in the drawer): filter `considerations[]` to `selected`, then run the SAME §5.1a re-derive — `refine_problem_statement` with `considerations` = `selected`, `previous_problem_statement` = the **canonical `problemStatement` from step 1** (so any drawer/Spark refinement is the BASIS and is preserved through the re-derive), `change_prompt` = `"Narrow scope to these sub-problems: {selected titles}."` — and surface the one-line approved status `Sub-problems narrowed to {N}.`
 3. Else if the canonical `problemStatement` **differs from the frame you rendered** (the user refined the statement in the drawer without narrowing): adopt the canonical text as the lock text and surface the one-line approved status `Problem statement updated from your edits.`
 4. Else (`selected` is the full set and the statement is unchanged, or `get_considerations` returns `ready:false` — non-plugin path): proceed to Step 6 unchanged.
@@ -757,7 +757,7 @@ If the user asks for a refinement:
 
 **Pre-flight (mandatory):** before calling `refine_problem_statement`, run the change pre-flight in `references/change-preflight.md` — restate the change in the user's terms, show the exact `change_prompt` you're about to send, and wait for `yes`. This is a hard pause (even in auto-mode) and fires on every refinement request, including a one-word `tighten`/`broaden`. Do not call the tool until the user confirms.
 
-Call `mcp__ritual__refine_problem_statement` with:
+Call `mcp__plugin_ritual_ritual__refine_problem_statement` with:
 - `workspace_id`, `raw_input`, `considerations`, `sources` — unchanged. (Same `sources` as the original generate call — keeps the KG anchor stable.)
 - `template_id` — same rule as Step 4 / Step 5.1: omit unless the user explicitly overrode; if you passed it to the original `generate_problem_statement` call, pass the same value here for symmetry.
 - `previous_problem_statement`: the FULL TEXT of the current best draft
@@ -1010,7 +1010,7 @@ User-visible before the call, if needed:
 Locking scope: **T2 churn reduction (Q3)**
 ```
 
-Call `mcp__ritual__lock_exploration_scope` with:
+Call `mcp__plugin_ritual_ritual__lock_exploration_scope` with:
 - `exploration_id` — the draft id you held since Step 0.7 (or Step 1).
 - `problem_statement` — the scope the user locked at Step 5. **Plugin-attached: pass the canonical text reconciled at §5.1b** (re-read from the exploration so an out-of-band drawer/Spark "Request adjustment" is committed), NOT your in-context draft. When no plugin is attached, this is simply the frame the user accepted.
 - `jtbd` — pass the FINAL job ONLY if the user ADJUSTED it at the Step 0.7 Scope-entry gate, so go-LIVE records the correction; otherwise OMIT (the draft already carries the slug confirmed at the gate). The job still drives the build-brief → code-plan → implement → PR deliverable phase across every surface.
@@ -1051,7 +1051,7 @@ If `git mv` fails (file wasn't tracked yet): use plain `mv` instead — same out
 
 If Step 3.5 staged any knowledge sources in working memory (PRDs / tickets / transcripts / etc.), register them NOW that `exploration_id` exists. The staging step deliberately deferred the MCP call because `add_knowledge_source` requires an exploration to attach to — this is where the deferral resolves.
 
-For each staged record from § 3.5.3, call `mcp__ritual__add_knowledge_source` with:
+For each staged record from § 3.5.3, call `mcp__plugin_ritual_ritual__add_knowledge_source` with:
 
 - `exploration_id` (from Step 6)
 - `source_content_type` (from the staged record)
@@ -1087,7 +1087,7 @@ Default behavior:
 
    > Saved {N} unpicked sub-problem{s} as later candidates for the brief.
 
-Only call `mcp__ritual__fork_sibling_explorations` when the user explicitly asks to save separate tracks, or when an unpicked item maps cleanly to a known open deferral / existing exploration and the user confirms.
+Only call `mcp__plugin_ritual_ritual__fork_sibling_explorations` when the user explicitly asks to save separate tracks, or when an unpicked item maps cleanly to a known open deferral / existing exploration and the user confirms.
 
 If sibling creation is confirmed, call:
 
@@ -1106,11 +1106,11 @@ Longest phase because generation is async + the user picks per-Area. (Internally
 
 **Step 6 → Step 7 transition anti-pattern (load-bearing):** after `create_exploration` succeeds in Step 6, you MUST NOT jump to Step 8's answering/run — discovery questions must be generated, picked, and committed first. Required next actions, in order, before Step 8 is allowed:
 
-1. Call `mcp__ritual__suggest_discovery_questions(exploration_id)` (Step 7.1) — no user input needed; just kick it off.
-2. Poll `mcp__ritual__get_discovery_state(exploration_id)` until `ready: true` (Step 7.2).
+1. Call `mcp__plugin_ritual_ritual__suggest_discovery_questions(exploration_id)` (Step 7.1) — no user input needed; just kick it off.
+2. Poll `mcp__plugin_ritual_ritual__get_discovery_state(exploration_id)` until `ready: true` (Step 7.2).
 3. Render the **Area rail + Area 1's questions together** and walk Area-by-Area per § 7.3.1 (the rail orients; a rail with NO questions under it — a bare index — is the failure mode).
 4. `[USER PAUSE]` — the suggested-12 landing (§ 7.3.1): the user replies `proceed` (commit the 12), `expert` (walk + adjust; floor 6 to run, aim 15–20, no cap), or `pause`.
-5. Commit all picked Areas in ONE `mcp__ritual__accept_discovery_questions_batch` call (Step 7.4) — never one parallel call per Area.
+5. Commit all picked Areas in ONE `mcp__plugin_ritual_ritual__accept_discovery_questions_batch` call (Step 7.4) — never one parallel call per Area.
 6. Optionally capture anti-goals (Step 7.5), then proceed to Step 8 — but only **after the Step 7.4 `accept_discovery_questions_batch` response returns** (you need its `materialized[]` question ids to run against). For engineering/delivery/operations, then **auto-fire the run** (answer the picked questions + `submit_all_answers`, or the server fallback) — no `run` CTA, no pause. For product/design/PRD flows, render the `1`/`2` run-mode choice (stop-after-answers review vs run-through). Never start answering/running before the accept resolves.
 
 **Picking is a deliberate step-through, not a bulk action (load-bearing):** the user going Area by Area and choosing the questions that matter IS the value of discovery — that per-question judgment shapes the whole downstream chain. So **nudge the user to step through and pick**; don't lead with bulk shortcuts.
@@ -1137,7 +1137,7 @@ The picker is **not** a UI suggestion — it's the load-bearing decision gate wh
 
 ##### 7.1 — Kick off
 
-Call `mcp__ritual__suggest_discovery_questions(exploration_id)`. Returns immediately with `task_id`. Tell the user with the full rail (we just entered the Discovery phase):
+Call `mcp__plugin_ritual_ritual__suggest_discovery_questions(exploration_id)`. Returns immediately with `task_id`. Tell the user with the full rail (we just entered the Discovery phase):
 
 ```text
 Ritual build
@@ -1151,9 +1151,9 @@ Generating discovery questions…
 **Readiness is the server's signal — never infer it from the payload.** Matters are persisted BEFORE their questions, so a state that already carries matters does NOT mean generation finished. Read `ready`; the accompanying `status` tells you *why* it isn't ready and whether waiting will help.
 
 Loop:
-- Call `mcp__ritual__get_discovery_state(exploration_id)`
+- Call `mcp__plugin_ritual_ritual__get_discovery_state(exploration_id)`
 - `ready: false`, `status: pending` (nothing generated yet) or `generating` (questions still being written) → wait 10 seconds, poll again
-- `ready: false`, `status: stalled` → generation stopped making progress. This is **not** a wait-longer state — polling on will never clear it. Call `mcp__ritual__suggest_discovery_questions(exploration_id)` once to re-enqueue (a stalled state is retry-able; it releases the stale claim and starts over), then resume the loop. If it stalls a **second** time, stop and surface it as an anomaly — offer `/ritual status` or the web app. Never retry a third time.
+- `ready: false`, `status: stalled` → generation stopped making progress. This is **not** a wait-longer state — polling on will never clear it. Call `mcp__plugin_ritual_ritual__suggest_discovery_questions(exploration_id)` once to re-enqueue (a stalled state is retry-able; it releases the stale claim and starts over), then resume the loop. If it stalls a **second** time, stop and surface it as an anomaly — offer `/ritual status` or the web app. Never retry a third time.
 - `ready: true` → exit loop
 
 If ~10 minutes pass still `generating`, surface it as an anomaly rather than polling on silently.
@@ -1191,7 +1191,7 @@ The user always confirms; nothing is committed without their reply.
 **Legacy token:** `accept shortlist` (the old 6–10 power path) is retired as a displayed option — the suggested 12 IS the landing now. If a user types it anywhere, treat it as the landing's `proceed` (commit the suggested 12) and note in one line that the landing already covers it.
 
 **Record the suggested set before rendering.** Once (a) is chosen, call
-`mcp__ritual__select_discovery_questions(exploration_id, state_id, question_ids)` with the
+`mcp__plugin_ritual_ritual__select_discovery_questions(exploration_id, state_id, question_ids)` with the
 suggested set IN FULL — every id, never a delta, because the call REPLACES the stored
 selection. Nothing is committed by this: no questions are materialized and the step does
 not advance; `accept_discovery_questions_batch` is still the only committer.
@@ -1440,7 +1440,7 @@ does several DB round-trips; firing them concurrently exhausts the server's
 connection pool and returns 503s on the later Areas (observed in prod). The
 batch endpoint exists precisely to avoid this — use it.
 
-Call `mcp__ritual__accept_discovery_questions_batch` **once** with every
+Call `mcp__plugin_ritual_ritual__accept_discovery_questions_batch` **once** with every
 Area's picks in a single atomic request:
 - `state_id` (from the discovery state)
 - `picks[]` — one entry per Area the user picked in, each `{ matter_id, question_ids[] }`
@@ -1478,13 +1478,13 @@ LOCALLY during the walk because `add_discovery_question` needs a **workspace** m
 which only exists after the batch above materialized the picked Areas. Persist them now,
 AFTER the batch call:
 
-1. **Resolve workspace matter ids.** Call `mcp__ritual__get_exploration(exploration_id)` and
+1. **Resolve workspace matter ids.** Call `mcp__plugin_ritual_ritual__get_exploration(exploration_id)` and
    map each Area **name** → its workspace `matters[i].id`. (The batch only materialized Areas
    the user picked AI questions in.)
 2. **For each Area that has held custom questions:**
    - if a workspace matter for that name exists → use its id;
-   - if not (a custom-only Area, or a pending new Area) → `mcp__ritual__create_discovery_matter(exploration_id, name)` first, use the returned id.
-   - then call `mcp__ritual__add_discovery_question(exploration_id, matter_id, text)` for each held question — **SEQUENTIALLY** (`await` each), never in parallel (same connection-pool caution as the batch).
+   - if not (a custom-only Area, or a pending new Area) → `mcp__plugin_ritual_ritual__create_discovery_matter(exploration_id, name)` first, use the returned id.
+   - then call `mcp__plugin_ritual_ritual__add_discovery_question(exploration_id, matter_id, text)` for each held question — **SEQUENTIALLY** (`await` each), never in parallel (same connection-pool caution as the batch).
 3. **For each pending new Area** (from `more`): `create_discovery_matter(...)` then `add_discovery_question(...)` per its questions, sequentially.
 
 One status line for the whole persist step (not one per question):
@@ -1503,7 +1503,7 @@ If the user mentioned things they DON'T want investigated ("don't touch enterpri
 
 **Pre-flight (mandatory):** before calling `set_anti_goals`, run the change pre-flight in `references/change-preflight.md` — restate the out-of-scope items you heard and show the exact anti-goal `text` array you're about to send, then wait for `yes`. A misread anti-goal poisons rec-gen and the R4 audit downstream, so this hard pause (even in auto-mode) applies even when the user's phrasing seemed clear. Do not call the tool until the user confirms.
 
-Call `mcp__ritual__set_anti_goals(exploration_id, [{ text, reason? }, ...])`.
+Call `mcp__plugin_ritual_ritual__set_anti_goals(exploration_id, [{ text, reason? }, ...])`.
 
 If no anti-goals were mentioned, skip this with NO user-visible output. (No mention = nothing to confirm; the pre-flight only runs when the user actually states out-of-scope items.)
 
@@ -1558,14 +1558,14 @@ Answering your picked questions, then generating recommendations.
 
 **If you're genuinely repo-linked (per the check above), answer the questions yourself** (BYO-answerer; do NOT call `start_agentic_run`):
 1. The Step 7.4 accept (`accept_discovery_questions_batch`) returned `materialized[]` — the committed questions with their row `id`s. (If you didn't keep them, the same ids are what you passed to accept.)
-2. For each saved question, call `mcp__ritual__write_answer_context(question_id, content)` with an answer grounded in your reading of the codebase — the files you read at Step 5.7, the actual code, real constraints. Answer in PARALLEL where your agent supports it (e.g. one subagent per Area). The content is provisional + provenance-tagged agentic until saved; only the final saved set drives recommendations.
+2. For each saved question, call `mcp__plugin_ritual_ritual__write_answer_context(question_id, content)` with an answer grounded in your reading of the codebase — the files you read at Step 5.7, the actual code, real constraints. Answer in PARALLEL where your agent supports it (e.g. one subagent per Area). The content is provisional + provenance-tagged agentic until saved; only the final saved set drives recommendations.
    - Every answer follows **the answering contract** above (length, prose-not-code, no-secrets). `content` is **markdown**; the web app lifts fenced snippets out of the prose into a collapsed reference beside the answer, and markdown keeps them portable to the `.ritual/` projection.
 
    - Where a question needs a person rather than the code, **ask** — this surface has the user with you turn by turn, so the pause is cheap and their answer beats your assumption. That is this surface's choice under the contract's "surface what the code cannot answer" rule; a surface where stopping is expensive takes the stated-assumption branch instead.
 
-3. When every committed question has answer context, call `mcp__ritual__submit_all_answers(exploration_id)` — it commits the set and triggers recommendation generation. Then go to the recommendation wait (Step 8.1, agent-answered path).
+3. When every committed question has answer context, call `mcp__plugin_ritual_ritual__submit_all_answers(exploration_id)` — it commits the set and triggers recommendation generation. Then go to the recommendation wait (Step 8.1, agent-answered path).
 
-**Fallback — server answers (no repo / nothing to ground in):** only after the Step 7.4 accept has returned (the run needs the committed question set it produced), call `mcp__ritual__start_agentic_run` with `scope_type: 'exploration'` + `exploration_id`, then follow the server polling path (8.0 → 8.1).
+**Fallback — server answers (no repo / nothing to ground in):** only after the Step 7.4 accept has returned (the run needs the committed question set it produced), call `mcp__plugin_ritual_ritual__start_agentic_run` with `scope_type: 'exploration'` + `exploration_id`, then follow the server polling path (8.0 → 8.1).
 
 For `product`, `design`, or explicitly PRD-style flows where answer review is useful, offer two choices without time estimates (this path uses the SERVER answer engine so the user can review each generated answer — Step 8.5):
 
@@ -1642,17 +1642,17 @@ Pick whichever fits the user's flow — they're equivalent in content. Do not in
 
 **Read `recommendationsStatus` from EITHER `get_exploration_status` or `get_recommendations` — both carry it, and the states below mean the same thing on both.** `get_recommendations` is the heavier call, so prefer `get_exploration_status` while waiting; but if you are already holding a `get_recommendations` result, its readiness block is authoritative and there is nothing further to poll. **Once either reports `ready`, STOP — calling again cannot change the answer.**
 
-**Both answerers converge here — once the run is underway, poll until recommendations are READY.** The job from this point on is the SAME regardless of who produced the answers. **Poll the authoritative signal: `mcp__ritual__get_exploration_status(exploration_id).recommendationsStatus`.** Do not infer readiness from row counts — this signal is unambiguous:
+**Both answerers converge here — once the run is underway, poll until recommendations are READY.** The job from this point on is the SAME regardless of who produced the answers. **Poll the authoritative signal: `mcp__plugin_ritual_ritual__get_exploration_status(exploration_id).recommendationsStatus`.** Do not infer readiness from row counts — this signal is unambiguous:
 - `not_started` / `generating` → **keep polling.** A zero `recommendationCount` here is NORMAL — generation is enqueued/in flight, NEVER a "miss." (Older servers may omit the field; if `recommendationsStatus` is absent, fall back to polling `get_recommendations_preview` until ≥1.)
 - `ready` → recommendations exist. Fetch them (`get_recommendations_preview`) and continue to Step 9.
 - `empty` → generation FINISHED with genuinely zero recs (rare, real terminal state). Surface it plainly — do NOT render a fake Step 9 landing, do NOT re-run.
-- `failed` → generation exhausted its auto-retries (terminal). Surface it with the one-line `recommendationsError` if present, and **offer to retry** — on a `yes`, call `mcp__ritual__retry_recommendations(exploration_id)` (re-enqueues ONLY rec-gen on the existing answers; status returns to `generating`, resume polling). Do NOT call `start_agentic_run` (that re-answers the whole exploration) and do NOT auto-retry without asking.
+- `failed` → generation exhausted its auto-retries (terminal). Surface it with the one-line `recommendationsError` if present, and **offer to retry** — on a `yes`, call `mcp__plugin_ritual_ritual__retry_recommendations(exploration_id)` (re-enqueues ONLY rec-gen on the existing answers; status returns to `generating`, resume polling). Do NOT call `start_agentic_run` (that re-answers the whole exploration) and do NOT auto-retry without asking.
 
 The *only* difference between the two answerer paths — **local coding agent** (you, repo-linked) vs **Ritual's server agentic run** — is how you reach this wait (agent-answered → straight to the status poll; server → poll the run to `COMPLETED` first, then the status). Never render the Step 9 landing, and never call `accept_recommendations`, from anything but `ready`.
 
-**Agent-answered path (default):** you already wrote + `submit_all_answers`'d, so there's no agentic run to poll — go straight to the recommendation wait: poll `mcp__ritual__get_exploration_status(exploration_id).recommendationsStatus` (a constant ~20s cadence, a "still generating recommendations…" line every ~3 polls) until it reads `ready`, then fetch + continue to Step 9. `generating` → keep polling; `empty` → genuine zero-rec terminal; NEVER render the Step 9 landing or call `accept_recommendations` from anything but `ready`; if 10+ min pass still `generating`, surface it as an anomaly. (Skip the `get_agentic_run` polling below — that's the server-fallback path.)
+**Agent-answered path (default):** you already wrote + `submit_all_answers`'d, so there's no agentic run to poll — go straight to the recommendation wait: poll `mcp__plugin_ritual_ritual__get_exploration_status(exploration_id).recommendationsStatus` (a constant ~20s cadence, a "still generating recommendations…" line every ~3 polls) until it reads `ready`, then fetch + continue to Step 9. `generating` → keep polling; `empty` → genuine zero-rec terminal; NEVER render the Step 9 landing or call `accept_recommendations` from anything but `ready`; if 10+ min pass still `generating`, surface it as an anomaly. (Skip the `get_agentic_run` polling below — that's the server-fallback path.)
 
-**Server fallback path** (you called `start_agentic_run`): poll `mcp__ritual__get_agentic_run(run_id)` using `references/async-polling.md`: **a constant ~20s cadence** (matches Spark's 20s agentic cadence; never escalate), then a fresh status call. Even if the run takes 2+ minutes the cadence stays constant. Agentic runs CAN exceed 5 min for large explorations — keep the same constant cadence and keep polling; if status is still running past ~10 min, surface it as an anomaly rather than escalating the wait.
+**Server fallback path** (you called `start_agentic_run`): poll `mcp__plugin_ritual_ritual__get_agentic_run(run_id)` using `references/async-polling.md`: **a constant ~20s cadence** (matches Spark's 20s agentic cadence; never escalate), then a fresh status call. Even if the run takes 2+ minutes the cadence stays constant. Agentic runs CAN exceed 5 min for large explorations — keep the same constant cadence and keep polling; if status is still running past ~10 min, surface it as an anomaly rather than escalating the wait.
 
 **On the FIRST poll only** (not every poll), prepend one line that locks the "background execution is default" mental model:
 
@@ -1665,7 +1665,7 @@ Then print progress only when `progress_pct` or `current_step` changes, or every
 When `status` is `COMPLETED`: **wait for `recommendationsStatus: ready` before Step 9.** The run reporting
 `completed` does NOT mean recommendations exist yet — rec generation is a separate queued job that
 lands MINUTES later (the premature-accept failure mode — acting on `completed` before
-recommendations exist). Poll `mcp__ritual__get_exploration_status(exploration_id).recommendationsStatus` on
+recommendations exist). Poll `mcp__plugin_ritual_ritual__get_exploration_status(exploration_id).recommendationsStatus` on
 the standard cadence (a constant ~20s cadence, "still generating recommendations…" line every
 ~3 polls): `generating` → keep polling; `ready` → continue to Step 9; `empty` → genuine zero-rec
 terminal, surface it. NEVER render the Step 9 landing — and never call `accept_recommendations` —
@@ -1677,7 +1677,7 @@ When `status` is `COMPLETED_WITH_ERRORS`: tell the user, then apply the same wai
 When `status` is `FAILED`: surface the error message, ask if they want to retry (`start_agentic_run` again with same exploration_id) or stop.
 When `status` is `PAUSED_FOR_REVIEW` (product/design answer-review mode only): continue to Step 8.5.
 
-If user wants to abort mid-flight: `mcp__ritual__cancel_agentic_run(run_id)`.
+If user wants to abort mid-flight: `mcp__plugin_ritual_ritual__cancel_agentic_run(run_id)`.
 
 #### Step 8.5 — Run Agentic Exploration (product/design answer-review mode only)
 
@@ -1731,7 +1731,7 @@ Reply `submit` or reply with text to iterate.
 
 For each question's loop:
 
-1. **Fetch the state.** Call `mcp__ritual__get_answer_state({ question_id })`. Returns:
+1. **Fetch the state.** Call `mcp__plugin_ritual_ritual__get_answer_state({ question_id })`. Returns:
    - The question text
    - The current draft answer (v1)
    - The considerations (sub-aspects) with their chat sessions
@@ -1744,16 +1744,16 @@ For each question's loop:
 
 3. **Branch on user's choice:**
 
-   - **If "submit":** call `mcp__ritual__submit_answer({ question_id })`. The question advances to COMPLETED. Move to the next question's Step 8.5 loop iteration.
+   - **If "submit":** call `mcp__plugin_ritual_ritual__submit_answer({ question_id })`. The question advances to COMPLETED. Move to the next question's Step 8.5 loop iteration.
 
-   - **If "iterate" (any free-text reply):** call `mcp__ritual__iterate_answer({ consideration_id, message: user_text })`. The answer engine:
+   - **If "iterate" (any free-text reply):** call `mcp__plugin_ritual_ritual__iterate_answer({ consideration_id, message: user_text })`. The answer engine:
        - Persists the user message in the consideration's chat
        - Generates a new AI response (which is either the next clarifying question OR a recognition that the answer is now complete)
        - The new response is **automatically KG-aware**: the answer engine reads the exploration's persisted `sources` and pulls in relevant prior decisions + open deferrals when forming the next question
 
      **Loop back to step 2 with the updated state.** Fetch fresh state via `get_answer_state` (the considerations array now reflects the new chat message + AI response), show v_N+1, prompt again. Cap at ~5 iterations per consideration before suggesting "let's submit and move on" — keeps cost bounded.
 
-4. **When ALL questions are submitted:** call `mcp__ritual__resume_agentic_run({ run_id })`. Pipeline runs Phase 4 (submit all answers — the per-question submits above already advanced individual questions, but submit_all_answers is the canonical batch checkpoint) + Phase 5 (recommendations). Poll as in Step 8. When `status` becomes `COMPLETED`, continue to Step 9.
+4. **When ALL questions are submitted:** call `mcp__plugin_ritual_ritual__resume_agentic_run({ run_id })`. Pipeline runs Phase 4 (submit all answers — the per-question submits above already advanced individual questions, but submit_all_answers is the canonical batch checkpoint) + Phase 5 (recommendations). Poll as in Step 8. When `status` becomes `COMPLETED`, continue to Step 9.
 
 **Skip-the-iteration escape hatch:** the user can say "just resume" at any point. Call `resume_agentic_run` immediately. Recs generate from whatever state the answers are in (whether v1 or partially iterated). Equivalent to having picked Mode A from the start, just with the option to iterate later via the web UI.
 
@@ -1784,7 +1784,7 @@ This is the most-read screen in the build flow, and it is a **non-blocking revie
 
 **Landing-first — the same shape as the suggested-12 discovery landing:** the default render is ONE compact screen — `{N} recommendations, ready — across {K} categories`, then ONE numbered line per category listing that category's recommendation **titles only**, comma-joined. The user scans the shape of the set and replies `proceed` immediately. Depth is opt-in via **`expert`**, which re-renders the full detail (every rec's description + `R{N}` ids) where `drill R{N}` / `edit R{N}` become available. The goal is the shortest honest path to the {Deliverable}: scan the compact set, optionally go `expert` to read/refine, proceed. (Mirrors the discovery gate's `proceed`/`expert` split exactly — the compact landing summarizes, `expert` is the path to read or change before committing.)
 
-**Data source.** Use `mcp__ritual__get_recommendations(exploration_id)` (the raw array) — the walk shows full per-rec content, so you need the fields a titles-only preview omits:
+**Data source.** Use `mcp__plugin_ritual_ritual__get_recommendations(exploration_id)` (the raw array) — the walk shows full per-rec content, so you need the fields a titles-only preview omits:
 
 - top-level: `id`, `title`, `content` (the description / summary), `status`, `priority`, `points`, `confidence`
 - `categoryName` — **the load-bearing grouping key** (one rec → one category; `get_recommendations` exposes it top-level so you never reach into raw metadata for it)
@@ -1808,7 +1808,7 @@ Inside `expert` (and only there) two more become available:
 - `drill R{N}` — open ONE recommendation in full: complete description, "Why this", pass criteria. (§ 9.1b)
 - `edit R{N} <your change>` — refine one recommendation: regenerate its title / description / reasoning from a plain-language ask, **preview** the change, then **apply** it. (§ 9.2)
 
-**Do NOT freelance other actions.** There is **no `drop` / reject** (recs are auto-accepted and the review is non-blocking — a rec the user dislikes is refined with `edit` in `expert`, or simply left as-is), **no `comment`**, and **no `next`** (there is no pagination — `expert` already shows everything). Reject invented compounds too (`dedupe`, `accept the survivors`, `merge similar`, `open the admin UI` — all forbidden). If the rec set itself looks wrong (e.g. apparent duplicates), surface the anomaly explicitly and consult `mcp__ritual__get_recommendation_attestation` (`duplicateTitlePrefixes`) — don't paper over it with an invented action.
+**Do NOT freelance other actions.** There is **no `drop` / reject** (recs are auto-accepted and the review is non-blocking — a rec the user dislikes is refined with `edit` in `expert`, or simply left as-is), **no `comment`**, and **no `next`** (there is no pagination — `expert` already shows everything). Reject invented compounds too (`dedupe`, `accept the survivors`, `merge similar`, `open the admin UI` — all forbidden). If the rec set itself looks wrong (e.g. apparent duplicates), surface the anomaly explicitly and consult `mcp__plugin_ritual_ritual__get_recommendation_attestation` (`duplicateTitlePrefixes`) — don't paper over it with an invented action.
 
 ##### 9.1 — The compact landing: titles only, one line per category
 
@@ -1923,7 +1923,7 @@ Reply  edit R{N} <your change>   ·   back (all recommendations)   ·   proceed 
 This mirrors Spark's "Revise → Preview Revision → Apply revision" exactly: the change is **previewed before anything persists**.
 
 1. Resolve `R{N}` → rec UUID from the walk's ID map.
-2. Call `mcp__ritual__suggest_recommendation_edit({ recommendation_id, instruction: "<the user's ask, verbatim>" })`. This runs an LLM and returns a **transient proposal** — nothing is mutated yet. It carries `id` (the proposal id), `summary` ("what changed"), and `diff[]` of `{ field, before, after }` where `field` is `title`, `description`, or `chain.<idx>`.
+2. Call `mcp__plugin_ritual_ritual__suggest_recommendation_edit({ recommendation_id, instruction: "<the user's ask, verbatim>" })`. This runs an LLM and returns a **transient proposal** — nothing is mutated yet. It carries `id` (the proposal id), `summary` ("what changed"), and `diff[]` of `{ field, before, after }` where `field` is `title`, `description`, or `chain.<idx>`.
 3. **[USER PAUSE]** Render the preview and wait:
 
 ```text
@@ -1949,14 +1949,14 @@ Reply  apply (save this revision)   ·   discard (keep the original)
    - Render ONLY the `diff` fields that are present. Map `field: "title"` → `Title`, `"description"` → `Description`, `"chain.<idx>"` → `Why this — step {idx+1}`.
    - If the proposal's `diff` is empty (the LLM found no meaningful change), say so plainly and return to the category view unchanged — don't fabricate a diff.
 
-4. On `apply`: call `mcp__ritual__apply_recommendation_proposal({ recommendation_id, proposal_id })`. It persists a new version, replays the reasoning chain, and returns the applied proposal. Re-fetch the rec (`get_recommendations`) and **re-render the view the user came from** — the landing (§ 9.1) or the drill view (§ 9.1b) — with R{N} updated in place.
+4. On `apply`: call `mcp__plugin_ritual_ritual__apply_recommendation_proposal({ recommendation_id, proposal_id })`. It persists a new version, replays the reasoning chain, and returns the applied proposal. Re-fetch the rec (`get_recommendations`) and **re-render the view the user came from** — the landing (§ 9.1) or the drill view (§ 9.1b) — with R{N} updated in place.
    On `discard`: return to that view unchanged — nothing was persisted.
 
 Editing is non-destructive and does not advance the flow — the user can `edit` several recs before `proceed`.
 
 ##### 9.3 — `proceed`
 
-- **`proceed`** (from the landing or any drill view) → call `mcp__ritual__accept_recommendations({ exploration_id })`. Under the non-blocking model this **records the human review** (stamps `reviewedAt` / `reviewedBy`) and advances; it is NOT a draft→approved promotion (the recs are already `approved`). The downstream artifacts were queued at rec-gen time, so this returns fast. Then show the completion rail and continue to Step 9.5:
+- **`proceed`** (from the landing or any drill view) → call `mcp__plugin_ritual_ritual__accept_recommendations({ exploration_id })`. Under the non-blocking model this **records the human review** (stamps `reviewedAt` / `reviewedBy`) and advances; it is NOT a draft→approved promotion (the recs are already `approved`). The downstream artifacts were queued at rec-gen time, so this returns fast. Then show the completion rail and continue to Step 9.5:
 
 ```text
 Ritual build
@@ -1983,7 +1983,7 @@ Steps:
 
    > Generating requirements for the build brief…
 
-2. **Poll `mcp__ritual__get_requirement_set_status(exploration_id)` every ~5s.** The response shape:
+2. **Poll `mcp__plugin_ritual_ritual__get_requirement_set_status(exploration_id)` every ~5s.** The response shape:
 
    ```
    {
@@ -2062,7 +2062,7 @@ Render:
 Auditing recs + requirements against {N} declared anti-goal{s}…
 ```
 
-Call `mcp__ritual__audit_recommendations({ exploration_id })` with the default config (threshold mode, 80% acceptance threshold, max 3 iterations). The response shape:
+Call `mcp__plugin_ritual_ritual__audit_recommendations({ exploration_id })` with the default config (threshold mode, 80% acceptance threshold, max 3 iterations). The response shape:
 
 ```json
 {
@@ -2131,7 +2131,7 @@ Reply:
   · `show chain`               — render the full audit chain trail
 ```
 
-**On `resolve all`** — for each `auto_dispatchable: true` finding, call `mcp__ritual__apply_repair({ repair_id, chain_id, after_audit_id })`. Each call returns:
+**On `resolve all`** — for each `auto_dispatchable: true` finding, call `mcp__plugin_ritual_ritual__apply_repair({ repair_id, chain_id, after_audit_id })`. Each call returns:
 
 ```json
 {
@@ -2153,7 +2153,7 @@ lands on a chain that has already moved on.
 
 On any timeout, recover by READING instead:
 
-1. Call `mcp__ritual__get_audit_chain({ chain_id })`.
+1. Call `mcp__plugin_ritual_ritual__get_audit_chain({ chain_id })`.
 2. If the trail shows the repair applied, continue with the NEXT finding — the
    timeout cost you a response, not the work.
 3. If it did not apply, re-dispatch that one repair once.
@@ -2164,7 +2164,7 @@ the chain, and the server rejects further iterations with
 `400 … cannot run next iteration on a terminated chain`. Check the status after
 every apply and after every timeout recovery, and when it is terminal render the
 end state rather than dispatching the remaining findings. A 400 here is the flow
-learning something it could have read. After the last `auto_dispatchable: true` finding, call `mcp__ritual__get_audit_chain({ chain_id })` to fetch the final state and re-render the loop UX with the new survival rate. If `chain_status === 'accepted'` after this round, proceed to Step 10; otherwise re-render the findings (the chain may have iterated and produced new findings the next iteration surfaces).
+learning something it could have read. After the last `auto_dispatchable: true` finding, call `mcp__plugin_ritual_ritual__get_audit_chain({ chain_id })` to fetch the final state and re-render the loop UX with the new survival rate. If `chain_status === 'accepted'` after this round, proceed to Step 10; otherwise re-render the findings (the chain may have iterated and produced new findings the next iteration surfaces).
 
 **On `resolve {repair_id}`** — single-finding apply. Same dispatch shape; render the next iteration's findings on completion.
 
@@ -2212,7 +2212,7 @@ The Build Brief is the markdown document the engineer reads RIGHT BEFORE writing
 
 ##### 10a — Call `generate_build_brief`
 
-Call `mcp__ritual__generate_build_brief` with:
+Call `mcp__plugin_ritual_ritual__generate_build_brief` with:
 
 - `exploration_id`
 - `icp` — **omit this.** The brief sources from the requirement set the flow already generated (on accept), whose ICP the server resolves from the exploration's persona/template. Passing a different ICP here forces a redundant requirement regeneration and a slow cold start. The engineering flavor is already baked into the server-resolved template — you do not need to (and should not) pass `TECH_PM` or any other ICP.
@@ -2227,7 +2227,7 @@ Returns **immediately** with `status: 'GENERATING'` (synthesis runs in the backg
 
 **Don't treat the GENERATING response as the brief, and don't re-call generate to "check".** Poll the status:
 
-1. After `generate_build_brief` returns `GENERATING` (or on the rare local timeout), call `mcp__ritual__get_build_brief_status(exploration_id, icp)`.
+1. After `generate_build_brief` returns `GENERATING` (or on the rare local timeout), call `mcp__plugin_ritual_ritual__get_build_brief_status(exploration_id, icp)`.
 2. Poll using the standard async polling rule: one poll per turn at a constant cadence, then a fresh status call. Print a brief "still generating…" update every ~3 polls when the status is unchanged.
 3. Exit conditions:
 
@@ -2270,13 +2270,13 @@ Steps:
 
 5. **Write `BUILD-BRIEF-VERIFICATION.md`** into the SAME per-exploration directory as the brief (`.ritual/local/build-briefs/{exploration_id}/`) using the schema in `references/brief-verification-checklist.md`. Cite file + line range + actual code snippet on every contradiction. Do not fabricate evidence.
 
-7. **Fold the findings back into the brief — `save_reconciled_brief`.** When the pass produced any `contradicted`, `conflicts`, or `not_found` RB, call `mcp__ritual__save_reconciled_brief(exploration_id, content, source_review_id, reconciliation_summary)` with the brief REWRITTEN to carry those findings, and pass the `source_review_id` the sync just returned so the new version points back at the review that caused it.
+7. **Fold the findings back into the brief — `save_reconciled_brief`.** When the pass produced any `contradicted`, `conflicts`, or `not_found` RB, call `mcp__plugin_ritual_ritual__save_reconciled_brief(exploration_id, content, source_review_id, reconciliation_summary)` with the brief REWRITTEN to carry those findings, and pass the `source_review_id` the sync just returned so the new version points back at the review that caused it.
 
    **Skip it when every RB came back `verified` or `unverifiable`.** There is nothing to reconcile, and a version with no edits is noise in the history.
 
    This is what mints v2. Without it the review is stored beside the brief and the brief itself never learns anything — which is why `get_build_brief_versions` returned an empty history on every run before this step existed.
 
-8. **Sync the verification to Ritual's KG** — call `mcp__ritual__sync_brief_review` with:
+8. **Sync the verification to Ritual's KG** — call `mcp__plugin_ritual_ritual__sync_brief_review` with:
 
    ```
    {
@@ -2447,7 +2447,7 @@ Steps:
    - **Same exploration**: silent overwrite + one-line note in the summary.
    - **Different exploration**: confirm before overwriting (same convention as `BUILD-BRIEF.md` in Step 10c — *"A `UX-REVIEW.md` already exists from `{previous}`. Overwrite, or save-to-`UX-REVIEW-{slug}.md`?"*).
 
-5a. **Sync the UX review to Ritual's KG** — call `mcp__ritual__sync_brief_review` with:
+5a. **Sync the UX review to Ritual's KG** — call `mcp__plugin_ritual_ritual__sync_brief_review` with:
 
    ```
    {
@@ -2624,7 +2624,7 @@ Reply `ready` once you're in plan mode, or `skip` if yours doesn't have one.
 
 **`skip` skips PLAN MODE, never the scope audit.** On the skip branch you still
 hold a plan — the slice breakdown you just rendered. Audit THAT: pass the slice's
-RB list and intended file changes to `mcp__ritual__audit_plan` as `plan_content`
+RB list and intended file changes to `mcp__plugin_ritual_ritual__audit_plan` as `plan_content`
 before editing anything. The audit exists to catch work that drifts outside the
 brief's frozen scope contract, and that risk does not go away because the host
 has no plan-mode affordance. A gate that only runs on one branch of an optional
@@ -2746,7 +2746,7 @@ Reply `audit-plan` to run it, or `proceed` to start implementing.
 [USER PAUSE] Branch on response:
 
 - **`audit-plan`** (or auto, in `strict` mode): call
-  `mcp__ritual__audit_plan(exploration_id, plan_content)` where `plan_content`
+  `mcp__plugin_ritual_ritual__audit_plan(exploration_id, plan_content)` where `plan_content`
   is the implementation plan plan mode just produced (the same text you'd save to
   `IMPLEMENTATION-PLAN.md`). The server normalizes it to plan operations and runs
   R6 against the brief's scope contract. It's async — the tool polls to
@@ -2927,7 +2927,7 @@ compare, and a brief can go stale against a repo that already moved. Sync when a
 slice's commit is in, and pass that slice's `rb_id`s in `deferrals`/`decisions`
 so the link from shipped code back to the requirement survives.
 
-**After the sync, read the drift back — `mcp__ritual__get_brief_drift(exploration_id)`.**
+**After the sync, read the drift back — `mcp__plugin_ritual_ritual__get_brief_drift(exploration_id)`.**
 It returns `in_sync` / `brief_ahead` / `code_ahead` / `drift_unknown` plus the
 pinned-vs-current brief version. One read, and it is the only way to know the
 loop actually closed: a sync that lands and a sync that silently did nothing look
@@ -2965,7 +2965,7 @@ This framing replaces "I need to call sync_implementation, OK?" — which is jar
 
 ##### 12.1 — Make the call
 
-Call `mcp__ritual__sync_implementation` with:
+Call `mcp__plugin_ritual_ritual__sync_implementation` with:
 - `workspace_id`, `exploration_id`
 - `repo`, `branch`, `pr_url`, `pr_number`, `pr_status`
 - `commits[]` — each with `sha`, `message`, `timestamp`, `files_changed`
@@ -3092,7 +3092,7 @@ forward motion, never required work.
 
 ##### 13.1 — Generate the suggestion set
 
-Call `mcp__ritual__suggest_next_request` with `{ exploration_id }` (the
+Call `mcp__plugin_ritual_ritual__suggest_next_request` with `{ exploration_id }` (the
 just-finished exploration). It returns 1 primary + up to 2 alternatives. Each is
 a NEW exploration that runs its own discovery — it is **never** "go implement the
 recommendations you already have" (that's the coding agent's job — `/ritual
@@ -3181,41 +3181,41 @@ Or: re-run `/ritual build` in this workspace later — the existing-work check w
 
 This subcommand exclusively uses Ritual MCP tools, in the order they appear:
 
-1. `mcp__ritual__prepare_build` (Step 0.7 — the build entry: classify the job + auto-resolve the workspace + create/resume the DRAFT, one call)
-2. `mcp__ritual__classify_request` (Step 0.7 — re-called ONLY on a JOB correction; the workspace stays as `prepare_build` resolved it)
-3. `mcp__ritual__list_workspaces` (Step 1 — ONLY on the optional `change` escape)
-3a. `mcp__ritual__create_workspace` (Step 1 — ONLY if the user picks "create new" inside `change`)
-4. ~~`mcp__ritual__list_templates`~~ — **not registered on the MCP surface.** Step 2 is server-side template resolution; do not call this tool. See Step 2 for the rationale.
-7. `mcp__ritual__generate_considerations` (Step 4)
-8. `mcp__ritual__refine_considerations` (Step 4.2, iteration only)
-9. `mcp__ritual__generate_problem_statement` (Step 5)
-10. `mcp__ritual__refine_problem_statement` (Step 5.2, iteration only)
-11. `mcp__ritual__lock_exploration_scope` (Step 6 — promotes the `prepare_build` draft to LIVE)
-12. `mcp__ritual__fork_sibling_explorations` (Step 6.5 — optional only when the user explicitly asks to save separate sibling tracks)
-13. `mcp__ritual__suggest_discovery_questions` (Step 7.1)
-14. `mcp__ritual__get_discovery_state` (Step 7.2)
-15. `mcp__ritual__accept_discovery_questions` (Step 7.4)
-16. `mcp__ritual__set_anti_goals` (Step 7.5, optional)
-17. `mcp__ritual__start_agentic_run` (Step 8 — engineering runs through recommendations; product/design may use `stop_after='answers'`)
-18. `mcp__ritual__get_agentic_run` (Step 8 / Step 8.5 polling)
-19. `mcp__ritual__cancel_agentic_run` (Step 8, only on user abort)
-20. `mcp__ritual__resume_agentic_run` (Step 8.5, only when product/design answer-review mode was used)
-20a. `mcp__ritual__get_answer_state` (Step 8.5 per-question read)
-20b. `mcp__ritual__iterate_answer` (Step 8.5 — user picked "iterate")
-20c. `mcp__ritual__submit_answer` (Step 8.5 — user picked "submit")
-21. `mcp__ritual__get_recommendations` (Step 9)
-22. `mcp__ritual__accept_recommendations` (Step 9, admin branch only — fires requirement gen fire-and-forget)
-23. `mcp__ritual__get_requirement_set_status` (Step 9.5 polling)
-24. `mcp__ritual__generate_build_brief` (Step 10a)
-24a. `mcp__ritual__get_build_brief_status` (Step 10b — timeout-recovery polling, OR proactive cache-hit check before 10a)
-24d. `mcp__ritual__sync_brief_review` (Step 10b.5 — sync `BUILD-BRIEF-VERIFICATION.md` to KG; AND Step 10.5 — sync `UX-REVIEW.md` to KG)
-24b. `mcp__ritual__add_knowledge_source` (Step 6.2 — register staged knowledge sources after `create_exploration` returns `exploration_id`; staging happens at Step 3.5)
-24c. `mcp__ritual__list_knowledge_sources` (used inline by Step 3.5 to show already-attached refs on resume; also called by `/ritual context-pulse` CP2 for Reference Grounding count)
-24e. `mcp__ritual__audit_recommendations` (Step 9.6 — start an audit chain on the (anti-goals, typed recs+reqs, R4) triple; cli 0.10.0+)
-24f. `mcp__ritual__apply_repair` (Step 9.6 — apply or waive a structured repair instruction returned by an audit iteration; cli 0.10.0+)
-24g. `mcp__ritual__get_audit_chain` (Step 9.6 — fetch the full chain trail for review/lineage; cli 0.10.0+)
-25. `mcp__ritual__sync_implementation` (Step 12)
-26. `mcp__ritual__suggest_next_request` (Step 13.1 — propose the next discovery job after the loop closes; `create_exploration` at Step 13.2.1 takes `from_next_job_suggestion_id` to record the handoff)
+1. `mcp__plugin_ritual_ritual__prepare_build` (Step 0.7 — the build entry: classify the job + auto-resolve the workspace + create/resume the DRAFT, one call)
+2. `mcp__plugin_ritual_ritual__classify_request` (Step 0.7 — re-called ONLY on a JOB correction; the workspace stays as `prepare_build` resolved it)
+3. `mcp__plugin_ritual_ritual__list_workspaces` (Step 1 — ONLY on the optional `change` escape)
+3a. `mcp__plugin_ritual_ritual__create_workspace` (Step 1 — ONLY if the user picks "create new" inside `change`)
+4. ~~`mcp__plugin_ritual_ritual__list_templates`~~ — **not registered on the MCP surface.** Step 2 is server-side template resolution; do not call this tool. See Step 2 for the rationale.
+7. `mcp__plugin_ritual_ritual__generate_considerations` (Step 4)
+8. `mcp__plugin_ritual_ritual__refine_considerations` (Step 4.2, iteration only)
+9. `mcp__plugin_ritual_ritual__generate_problem_statement` (Step 5)
+10. `mcp__plugin_ritual_ritual__refine_problem_statement` (Step 5.2, iteration only)
+11. `mcp__plugin_ritual_ritual__lock_exploration_scope` (Step 6 — promotes the `prepare_build` draft to LIVE)
+12. `mcp__plugin_ritual_ritual__fork_sibling_explorations` (Step 6.5 — optional only when the user explicitly asks to save separate sibling tracks)
+13. `mcp__plugin_ritual_ritual__suggest_discovery_questions` (Step 7.1)
+14. `mcp__plugin_ritual_ritual__get_discovery_state` (Step 7.2)
+15. `mcp__plugin_ritual_ritual__accept_discovery_questions` (Step 7.4)
+16. `mcp__plugin_ritual_ritual__set_anti_goals` (Step 7.5, optional)
+17. `mcp__plugin_ritual_ritual__start_agentic_run` (Step 8 — engineering runs through recommendations; product/design may use `stop_after='answers'`)
+18. `mcp__plugin_ritual_ritual__get_agentic_run` (Step 8 / Step 8.5 polling)
+19. `mcp__plugin_ritual_ritual__cancel_agentic_run` (Step 8, only on user abort)
+20. `mcp__plugin_ritual_ritual__resume_agentic_run` (Step 8.5, only when product/design answer-review mode was used)
+20a. `mcp__plugin_ritual_ritual__get_answer_state` (Step 8.5 per-question read)
+20b. `mcp__plugin_ritual_ritual__iterate_answer` (Step 8.5 — user picked "iterate")
+20c. `mcp__plugin_ritual_ritual__submit_answer` (Step 8.5 — user picked "submit")
+21. `mcp__plugin_ritual_ritual__get_recommendations` (Step 9)
+22. `mcp__plugin_ritual_ritual__accept_recommendations` (Step 9, admin branch only — fires requirement gen fire-and-forget)
+23. `mcp__plugin_ritual_ritual__get_requirement_set_status` (Step 9.5 polling)
+24. `mcp__plugin_ritual_ritual__generate_build_brief` (Step 10a)
+24a. `mcp__plugin_ritual_ritual__get_build_brief_status` (Step 10b — timeout-recovery polling, OR proactive cache-hit check before 10a)
+24d. `mcp__plugin_ritual_ritual__sync_brief_review` (Step 10b.5 — sync `BUILD-BRIEF-VERIFICATION.md` to KG; AND Step 10.5 — sync `UX-REVIEW.md` to KG)
+24b. `mcp__plugin_ritual_ritual__add_knowledge_source` (Step 6.2 — register staged knowledge sources after `create_exploration` returns `exploration_id`; staging happens at Step 3.5)
+24c. `mcp__plugin_ritual_ritual__list_knowledge_sources` (used inline by Step 3.5 to show already-attached refs on resume; also called by `/ritual context-pulse` CP2 for Reference Grounding count)
+24e. `mcp__plugin_ritual_ritual__audit_recommendations` (Step 9.6 — start an audit chain on the (anti-goals, typed recs+reqs, R4) triple; cli 0.10.0+)
+24f. `mcp__plugin_ritual_ritual__apply_repair` (Step 9.6 — apply or waive a structured repair instruction returned by an audit iteration; cli 0.10.0+)
+24g. `mcp__plugin_ritual_ritual__get_audit_chain` (Step 9.6 — fetch the full chain trail for review/lineage; cli 0.10.0+)
+25. `mcp__plugin_ritual_ritual__sync_implementation` (Step 12)
+26. `mcp__plugin_ritual_ritual__suggest_next_request` (Step 13.1 — propose the next discovery job after the loop closes; `create_exploration` at Step 13.2.1 takes `from_next_job_suggestion_id` to record the handoff)
 
 36 of the 48 Ritual MCP tools (cli 0.10.0+: the 3 audit tools — `audit_recommendations`, `apply_repair`, `get_audit_chain` — joined the linear flow at Step 9.6 (audit-suite.md § Audit 1); cli 0.22.0+: `suggest_next_request` joined at Step 13 to close-then-continue the loop). The other 12 (`ping`, `get_exploration`, `list_agentic_runs`, `add_collaborator`, `check_anti_goals`, `query_knowledge_graph`, `get_workspace_overview`, `get_knowledge_source`, `remove_knowledge_source`, `get_recommendation_attestation`, `score_context_pulse`, `get_next_request`) are situational, not part of the linear build flow (`get_next_request` re-reads a persisted next-request set; the flow itself only needs `suggest_next_request`).
 

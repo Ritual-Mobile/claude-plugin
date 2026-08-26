@@ -74,7 +74,7 @@ Sub-steps:
 
 1. **Light code recon based on the feature description.** Extract keywords from the description (nouns / verbs / domain terms). Glob for matching paths. Read 3–5 candidate files briefly. Build a candidate `sources[]` array (~3–8 paths).
 
-2. **KG query for prior context on candidate files.** Call `mcp__ritual__query_knowledge_graph(workspace_id, sources=[candidate paths])`. Note any prior decisions, open deferrals, or implementations on these files.
+2. **KG query for prior context on candidate files.** Call `mcp__plugin_ritual_ritual__query_knowledge_graph(workspace_id, sources=[candidate paths])`. Note any prior decisions, open deferrals, or implementations on these files.
 
 3. **Score the mode-B pulse** using the standard 4-dimension formula. Repo Grounding will be the dominant contributor since this is the only dimension that can move pre-exploration. Decision resolution = 0 (no recs/discovery yet). Feature clarity scores against the description text the user gave. Assumption safety = 0 (no anti-goals yet).
 
@@ -113,7 +113,7 @@ Sub-steps:
    > (y / add some refs first / refine the description first / no)
 
    - **y** → write `CONTEXT-<slug>.md` to repo root using the template below. Tell the user the path. End with: *"Open in your editor? (y/N)"*.
-   - **add some refs first** → enter the same flow as `/ritual build` Step 3.5: collect content via `Read` / `WebFetch` / pasted text, detect `source_content_type` per item, hold the refs in session memory. Once an exploration eventually exists (via `/ritual build`), call `mcp__ritual__add_knowledge_source` for each. For PRE-EXPLORATION pulses where no exploration exists yet, just acknowledge what was provided + note that registration happens when the user proceeds to `/ritual build`. Each ref attached bumps Repo Grounding by +5 (cap +15 from refs) in subsequent pulses.
+   - **add some refs first** → enter the same flow as `/ritual build` Step 3.5: collect content via `Read` / `WebFetch` / pasted text, detect `source_content_type` per item, hold the refs in session memory. Once an exploration eventually exists (via `/ritual build`), call `mcp__plugin_ritual_ritual__add_knowledge_source` for each. For PRE-EXPLORATION pulses where no exploration exists yet, just acknowledge what was provided + note that registration happens when the user proceeds to `/ritual build`. Each ref attached bumps Repo Grounding by +5 (cap +15 from refs) in subsequent pulses.
    - **refine the description first** → ask what to adjust, loop back to CP1.5 step 1 with the refined description.
    - **no** → end the pulse here. No file written.
 
@@ -182,10 +182,10 @@ Sub-steps:
 
 ##### Preferred path: server-side canonical scoring
 
-Call **`mcp__ritual__score_context_pulse`** — one canonical call computes every dimension, persists the row for trend reporting, and returns the full response shape the SKILL renders at CP5. XOR input: pass exactly one of `exploration_id` OR `feature_description`. For `feature_description` pulses, also pass `workspace_id`. Always pass `sources` (file paths the agent identified during recon) when known — that's what drives Repo Grounding.
+Call **`mcp__plugin_ritual_ritual__score_context_pulse`** — one canonical call computes every dimension, persists the row for trend reporting, and returns the full response shape the SKILL renders at CP5. XOR input: pass exactly one of `exploration_id` OR `feature_description`. For `feature_description` pulses, also pass `workspace_id`. Always pass `sources` (file paths the agent identified during recon) when known — that's what drives Repo Grounding.
 
 ```
-mcp__ritual__score_context_pulse({
+mcp__plugin_ritual_ritual__score_context_pulse({
   exploration_id: "exp-7a2b9c",       // OR feature_description: "Add billing export ..."
   workspace_id: "ws-...",              // REQUIRED when feature_description is set
   sources: ["src/billing/views.py", "src/billing/serializers.py"]
@@ -221,18 +221,18 @@ If `score_context_pulse` errors (network, server down, bearer token expired) **O
 
 Call existing MCP tools:
 
-- `mcp__ritual__get_exploration(exploration_id)` — for problem statement + anti-goals + metadata
-- `mcp__ritual__get_recommendations(exploration_id)` — for status counts (accepted / pending / rejected / draft)
-- `mcp__ritual__get_discovery_state(exploration_id)` — for question count + answered count
-- `mcp__ritual__query_knowledge_graph(workspace_id, sources=[paths])` — for repo grounding signals (implementations / decisions / deferrals overlapping the exploration's `sources`)
-- `mcp__ritual__list_knowledge_sources(exploration_id)` — for the count + extraction status of attached non-code knowledge sources (PRDs / TICKETs / TRANSCRIPTs / etc.). Contributes to Repo Grounding per CP3.
+- `mcp__plugin_ritual_ritual__get_exploration(exploration_id)` — for problem statement + anti-goals + metadata
+- `mcp__plugin_ritual_ritual__get_recommendations(exploration_id)` — for status counts (accepted / pending / rejected / draft)
+- `mcp__plugin_ritual_ritual__get_discovery_state(exploration_id)` — for question count + answered count
+- `mcp__plugin_ritual_ritual__query_knowledge_graph(workspace_id, sources=[paths])` — for repo grounding signals (implementations / decisions / deferrals overlapping the exploration's `sources`)
+- `mcp__plugin_ritual_ritual__list_knowledge_sources(exploration_id)` — for the count + extraction status of attached non-code knowledge sources (PRDs / TICKETs / TRANSCRIPTs / etc.). Contributes to Repo Grounding per CP3.
 - Agent's own filesystem tools (Glob / Read) — for recon depth signal
 
 All read-tier. No LLM cost unless the user passes `--explain` (future).
 
 #### Step CP3 — Fallback scoring only
 
-Skip this step when `mcp__ritual__score_context_pulse` succeeds. Server-side scoring is canonical for all new pulses.
+Skip this step when `mcp__plugin_ritual_ritual__score_context_pulse` succeeds. Server-side scoring is canonical for all new pulses.
 
 Use `references/scoring-fallback.md` only when the MCP server errors, is unavailable, or does not expose `score_context_pulse`. New pulses should use the current canonical model returned by the server. Legacy scoring models are read-only context for old persisted rows, not active guidance for new scoring.
 
@@ -302,19 +302,19 @@ End every pulse with one recommended next step + a cheap escape hatch. Anchor th
 
 **Preferred path:** one tool does everything.
 
-1. `mcp__ritual__score_context_pulse` (CP2 — canonical server-side scoring; persists to `context_pulses` for trend + delta)
+1. `mcp__plugin_ritual_ritual__score_context_pulse` (CP2 — canonical server-side scoring; persists to `context_pulses` for trend + delta)
 
 **Fallback path:** read-tier subset of `/ritual build`'s tools, used when `score_context_pulse` errors or the MCP server doesn't expose the tool.
 
-1. `mcp__ritual__get_exploration` (CP2 fallback — problem statement + anti-goals + metadata)
-2. `mcp__ritual__get_recommendations` (CP2 fallback — rec status counts)
-3. `mcp__ritual__get_discovery_state` (CP2 fallback — question + answer counts)
-4. `mcp__ritual__query_knowledge_graph` (CP2 fallback — repo grounding signals)
-5. `mcp__ritual__check_anti_goals` (CP2 fallback — assumption safety)
-6. `mcp__ritual__list_explorations` (CP1 — resolving names to exploration ids; used in both paths)
+1. `mcp__plugin_ritual_ritual__get_exploration` (CP2 fallback — problem statement + anti-goals + metadata)
+2. `mcp__plugin_ritual_ritual__get_recommendations` (CP2 fallback — rec status counts)
+3. `mcp__plugin_ritual_ritual__get_discovery_state` (CP2 fallback — question + answer counts)
+4. `mcp__plugin_ritual_ritual__query_knowledge_graph` (CP2 fallback — repo grounding signals)
+5. `mcp__plugin_ritual_ritual__check_anti_goals` (CP2 fallback — assumption safety)
+6. `mcp__plugin_ritual_ritual__list_explorations` (CP1 — resolving names to exploration ids; used in both paths)
 7. Agent filesystem tools (`Glob`, `Read`) — for recon-depth signal in CP2 fallback
 
-**Canonical scoring lives server-side.** The SKILL prefers `mcp__ritual__score_context_pulse` (one call, one source of truth, persisted to `context_pulses` for trend reporting and `readinessDelta` computation). The agent-side path above is the **fallback** for older MCP servers / transient failures.
+**Canonical scoring lives server-side.** The SKILL prefers `mcp__plugin_ritual_ritual__score_context_pulse` (one call, one source of truth, persisted to `context_pulses` for trend reporting and `readinessDelta` computation). The agent-side path above is the **fallback** for older MCP servers / transient failures.
 
 Not yet available (do not reference in renders): an `--explain` narrative flag, `--compare before.json after.json` diffs, and profile-aware weights.
 
@@ -333,7 +333,7 @@ The standalone `/ritual context-pulse` and inline pulses share the same scoring 
 ### Future context-pulse extensions
 
 Already shipped:
-- Server-side canonical scoring via `mcp__ritual__score_context_pulse`
+- Server-side canonical scoring via `mcp__plugin_ritual_ritual__score_context_pulse`
 - Persistence to `context_pulses`
 - `readinessDelta` for trend/delta reporting
 
