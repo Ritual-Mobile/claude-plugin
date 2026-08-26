@@ -48,7 +48,7 @@ Do not reintroduce `/ritual recon`. Use plain-language repo inspection, `/ritual
 
 **Skill freshness (once per session, silent unless stale):** this file's frontmatter may carry a
 `stamp:` value, a `cli_version:` value and a `channel:` value (all injected when the bundle was
-built — absent on dev/source copies). On the FIRST `mcp__plugin_ritual_ritual__ping` of a session, pass the stamp
+built — absent on dev/source copies). On the FIRST `mcp__ritual__ping` of a session, pass the stamp
 as `skill_stamp` and, when present, the `cli_version:` value as `cli_version` and the `channel:`
 value as `skill_channel`. This is a silent provenance handshake: it lets the server record which
 skill content, producing CLI and delivery channel is driving the session, so support can later tell
@@ -101,7 +101,7 @@ Parse the first token of the argument:
 | `resume` | `references/resume-flow.md` | "Pick up where I left off." Lists in-flight explorations with state badges and jumps to the right step. |
 | `lineage` | `references/lineage-flow.md` | Paste a file path (or set of paths); see every prior exploration / decision / deferral that touched those files. |
 | `context-pulse` | `references/context-pulse-flow.md` | Score readiness / context debt for a feature ask or exploration. Can seed a `CONTEXT-<feature>.md` file with relevant codebase + KG context that `/ritual build` picks up automatically. Also surfaces inline during build so the user watches debt drop. |
-| `status` | `references/status-flow.md` | Read-only mirror of the `ritual status` CLI command (CLI 0.7.14+) for a quick run-progress check inside the agent session. Calls `mcp__plugin_ritual_ritual__get_agentic_run` + renders the same run-first layout the CLI uses. (Most useful when your agent runs alongside the Ritual CLI; harmless elsewhere.) |
+| `status` | `references/status-flow.md` | Read-only mirror of the `ritual status` CLI command (CLI 0.7.14+) for a quick run-progress check inside the agent session. Calls `mcp__ritual__get_agentic_run` + renders the same run-first layout the CLI uses. (Most useful when your agent runs alongside the Ritual CLI; harmless elsewhere.) |
 | `begin` | `references/begin-flow.md` | Execute an accepted build brief. Resolves the existing exploration, confirms the brief, then runs the implementation phase (build-flow.md Step 11+) and syncs. |
 | (anything else, OR no subcommand) | default to `build` and treat the entire argument as the problem statement | |
 
@@ -123,7 +123,7 @@ Load only the reference file needed for the selected subcommand:
 
 Additional runtime references:
 
-- `references/scoring-fallback.md` — only if `mcp__plugin_ritual_ritual__score_context_pulse` is unavailable or errors
+- `references/scoring-fallback.md` — only if `mcp__ritual__score_context_pulse` is unavailable or errors
 
 ## Routing behavior
 
@@ -137,11 +137,11 @@ When the user says things like *"what's the status of exp-X?"*, *"show me the re
 
 | User asks for… | Call this MCP tool |
 |---|---|
-| Status of one exploration | `mcp__plugin_ritual_ritual__get_exploration(exploration_id)` |
-| Status across many explorations | `mcp__plugin_ritual_ritual__list_explorations(workspace_id)` (returns state badges) |
-| The recommendations on an exploration | `mcp__plugin_ritual_ritual__get_recommendations(exploration_id)` |
-| Kick off / re-run the agentic pipeline | `mcp__plugin_ritual_ritual__start_agentic_run(exploration_id, …)` |
-| Did anyone implement something on these files? | `mcp__plugin_ritual_ritual__query_knowledge_graph(sources=[…])` — same plumbing as `/ritual lineage` |
+| Status of one exploration | `mcp__ritual__get_exploration(exploration_id)` |
+| Status across many explorations | `mcp__ritual__list_explorations(workspace_id)` (returns state badges) |
+| The recommendations on an exploration | `mcp__ritual__get_recommendations(exploration_id)` |
+| Kick off / re-run the agentic pipeline | `mcp__ritual__start_agentic_run(exploration_id, …)` |
+| Did anyone implement something on these files? | `mcp__ritual__query_knowledge_graph(sources=[…])` — same plumbing as `/ritual lineage` |
 
 This is intentional. Exposing each of these as its own command (`/ritual recs`, `/ritual run`, etc.) balloons the surface area without adding agent value. The commands stay narrow (`build`, `refine`, `lite`, `resume`, `lineage`, `context-pulse`, plus the read-only `status` mirror and the implementation-trigger `begin`) and let the agent fluently call MCP tools for everything else. Note: `/ritual status` is the one deliberate exception — it exists as a thin SKILL mirror of the `ritual status` CLI command so users who want an in-chat status check don't have to switch surfaces. Do not reintroduce `/ritual recon`: its former workspace-history value is covered by `/ritual resume`; its file-decision-history value is covered by `/ritual lineage`; and repo-reading behaviors are normal coding-agent behavior in plain English.
 

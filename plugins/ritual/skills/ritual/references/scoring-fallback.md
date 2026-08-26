@@ -1,6 +1,6 @@
 # Context pulse fallback scoring reference
 
-Loaded only if `mcp__plugin_ritual_ritual__score_context_pulse` is unavailable, errors, or the MCP server is older than the canonical scoring API. Server-side scoring remains authoritative for new pulses.
+Loaded only if `mcp__ritual__score_context_pulse` is unavailable, errors, or the MCP server is older than the canonical scoring API. Server-side scoring remains authoritative for new pulses.
 
 #### Step CP3 — Compute the dimensions (fallback only)
 
@@ -52,7 +52,7 @@ Fallbacks: `total_recs === 0` → use only the discovery component scaled to 100
 
 | Signal | Points |
 |---|---:|
-| `mcp__plugin_ritual_ritual__list_knowledge_sources` returns ≥ 1 KnowledgeSource attached | 25 per ref, cap 75 (3 refs) |
+| `mcp__ritual__list_knowledge_sources` returns ≥ 1 KnowledgeSource attached | 25 per ref, cap 75 (3 refs) |
 | At least one ref has `extractionStatus = COMPLETED` (Pass 1 snippets exist; the source is queryable) | +25 |
 
 Lower weight than Code Grounding because a single high-quality PRD gets the user to a meaningful baseline; diminishing returns past 3 since more refs add review surface area without making the feature clearer.

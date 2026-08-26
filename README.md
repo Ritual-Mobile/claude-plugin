@@ -13,12 +13,22 @@ The plugin bundles two things:
 
 ## Install
 
+Inside Claude Code:
+
 ```
 /plugin marketplace add ritual-work/claude-plugin
 /plugin install ritual@ritual
 ```
 
-Then in any repo:
+Then add the Ritual server (one time, from your shell — Claude Code cannot yet
+sign in to a server a plugin bundles, so the plugin ships the skill and the
+server is added user-scoped):
+
+```bash
+claude mcp add --transport http -s user ritual https://mcp.ritualapp.cloud/mcp
+```
+
+Restart Claude Code, open `/mcp`, and authenticate `ritual`. Then in any repo:
 
 ```
 /ritual build "what you want to build"
