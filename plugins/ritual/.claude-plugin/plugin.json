@@ -1,0 +1,21 @@
+{
+  "name": "ritual",
+  "displayName": "Ritual",
+  "version": "0.1.0",
+  "description": "Plan before you build. Ritual runs a structured exploration — discovery questions, recommendations, a validated build brief — so your coding agent gets the intent, constraints, and prior decisions it can't infer from the repo. Bundles the Ritual MCP server connection and the /ritual skill.",
+  "author": {
+    "name": "Ritual",
+    "url": "https://ritual.work"
+  },
+  "homepage": "https://ritual.work",
+  "repository": "https://github.com/ritual-work/claude-plugin",
+  "license": "MIT",
+  "keywords": [
+    "ritual",
+    "agentic-coding",
+    "planning",
+    "discovery",
+    "context",
+    "mcp"
+  ]
+}

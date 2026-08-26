@@ -1,14 +1,9 @@
 {
   "name": "ritual-claude-plugin",
   "private": true,
-  "description": "Maintainer scripts for the Ritual Claude Code plugin marketplace. Not a published package — the packs are the artifact.",
+  "description": "Maintainer scripts for the Ritual Claude Code plugin marketplace. Not a published package — the plugin is the artifact.",
   "license": "MIT",
   "scripts": {
-    "generate": "node scripts/generate-packs.mjs",
-    "check": "node scripts/generate-packs.mjs --check",
-    "validate": "node scripts/validate-leaves.mjs",
-    "sync": "node scripts/sync-snapshot.mjs",
-    "sync:check": "node scripts/sync-snapshot.mjs --check",
-    "resync": "npm run sync && npm run generate && npm run check && npm run validate"
+    "sync": "node scripts/sync-ritual-skill.mjs"
   }
 }

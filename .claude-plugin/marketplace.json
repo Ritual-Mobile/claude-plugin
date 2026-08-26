@@ -4,168 +4,27 @@
     "name": "Ritual",
     "url": "https://ritual.work"
   },
-  "description": "Ritual's Claude Code plugins — structured context and verification for agentic coding.",
+  "description": "Ritual's Claude Code plugin — structured planning context for agentic coding.",
   "plugins": [
     {
-      "name": "build-discipline",
-      "source": "./plugins/build-discipline",
-      "description": "Build discipline for coding agents: surface assumptions and success criteria before writing code, keep changes surgical — and when a task is ambiguous or cross-cutting, run a Ritual exploration to gather the real context and verify it survived into the diff. The shared base; role packs depend on it.",
-      "version": "0.6.0",
+      "name": "ritual",
+      "source": "./plugins/ritual",
+      "description": "Plan before you build. Ritual runs a structured exploration — discovery questions, recommendations, a validated build brief — so your coding agent gets the intent, constraints, and prior decisions it can't infer from the repo. Bundles the Ritual MCP server connection and the /ritual skill.",
+      "version": "0.1.0",
       "author": {
         "name": "Ritual",
         "url": "https://ritual.work"
       },
-      "homepage": "https://github.com/ritual-work/claude-plugin",
+      "homepage": "https://ritual.work",
       "repository": "https://github.com/ritual-work/claude-plugin",
       "license": "MIT",
       "keywords": [
+        "ritual",
         "agentic-coding",
-        "discipline",
         "planning",
-        "context",
-        "ritual"
-      ],
-      "category": "productivity"
-    },
-    {
-      "name": "developer",
-      "source": "./plugins/developer",
-      "description": "Role pack for developers. Job-native commands for developer work — discovery commands scope a job into a decision-ready Ritual brief before you build; standalone check commands run a local recipe (no Ritual needed). Depends on build-discipline.",
-      "version": "0.2.0",
-      "author": {
-        "name": "Ritual",
-        "url": "https://ritual.work"
-      },
-      "homepage": "https://ritual.work",
-      "repository": "https://github.com/ritual-work/claude-plugin",
-      "license": "MIT",
-      "keywords": [
-        "ritual",
-        "agentic-coding",
-        "developer",
-        "discovery"
-      ],
-      "category": "productivity"
-    },
-    {
-      "name": "frontend-developer",
-      "source": "./plugins/frontend-developer",
-      "description": "Role pack for frontend developers. Job-native commands for frontend developer work — discovery commands scope a job into a decision-ready Ritual brief before you build; standalone check commands run a local recipe (no Ritual needed). Depends on build-discipline.",
-      "version": "0.1.1",
-      "author": {
-        "name": "Ritual",
-        "url": "https://ritual.work"
-      },
-      "homepage": "https://ritual.work",
-      "repository": "https://github.com/ritual-work/claude-plugin",
-      "license": "MIT",
-      "keywords": [
-        "ritual",
-        "agentic-coding",
-        "frontend-developer",
-        "discovery"
-      ],
-      "category": "productivity"
-    },
-    {
-      "name": "backend-developer",
-      "source": "./plugins/backend-developer",
-      "description": "Role pack for backend developers. Job-native commands for backend developer work — discovery commands scope a job into a decision-ready Ritual brief before you build; standalone check commands run a local recipe (no Ritual needed). Depends on build-discipline.",
-      "version": "0.1.1",
-      "author": {
-        "name": "Ritual",
-        "url": "https://ritual.work"
-      },
-      "homepage": "https://ritual.work",
-      "repository": "https://github.com/ritual-work/claude-plugin",
-      "license": "MIT",
-      "keywords": [
-        "ritual",
-        "agentic-coding",
-        "backend-developer",
-        "discovery"
-      ],
-      "category": "productivity"
-    },
-    {
-      "name": "eng-lead",
-      "source": "./plugins/eng-lead",
-      "description": "Role pack for eng leads. Job-native commands for eng lead work — discovery commands scope a job into a decision-ready Ritual brief before you build; standalone check commands run a local recipe (no Ritual needed). Depends on build-discipline.",
-      "version": "0.1.1",
-      "author": {
-        "name": "Ritual",
-        "url": "https://ritual.work"
-      },
-      "homepage": "https://ritual.work",
-      "repository": "https://github.com/ritual-work/claude-plugin",
-      "license": "MIT",
-      "keywords": [
-        "ritual",
-        "agentic-coding",
-        "eng-lead",
-        "discovery"
-      ],
-      "category": "productivity"
-    },
-    {
-      "name": "devex-engineer",
-      "source": "./plugins/devex-engineer",
-      "description": "Role pack for devex engineers. Job-native commands for devex engineer work — discovery commands scope a job into a decision-ready Ritual brief before you build; standalone check commands run a local recipe (no Ritual needed). Depends on build-discipline.",
-      "version": "0.1.1",
-      "author": {
-        "name": "Ritual",
-        "url": "https://ritual.work"
-      },
-      "homepage": "https://ritual.work",
-      "repository": "https://github.com/ritual-work/claude-plugin",
-      "license": "MIT",
-      "keywords": [
-        "ritual",
-        "agentic-coding",
-        "devex-engineer",
-        "discovery"
-      ],
-      "category": "productivity"
-    },
-    {
-      "name": "product",
-      "source": "./plugins/product",
-      "description": "Role pack for product managers — role-native discovery for product work (opportunity, customer problem, PRD, MVP scope, prioritization), routing each to the right canonical Ritual job under the product lens. Depends on build-discipline.",
-      "version": "0.1.1",
-      "author": {
-        "name": "Ritual",
-        "url": "https://ritual.work"
-      },
-      "homepage": "https://github.com/ritual-work/claude-plugin",
-      "repository": "https://github.com/ritual-work/claude-plugin",
-      "license": "MIT",
-      "keywords": [
-        "product",
-        "pm",
         "discovery",
-        "ritual",
-        "prd"
-      ],
-      "category": "productivity"
-    },
-    {
-      "name": "marketing",
-      "source": "./plugins/marketing",
-      "description": "Role pack for marketers — role-native discovery for marketing work (positioning, launch brief, growth experiment), routing each to the right canonical Ritual job under the relevant marketing lens. Depends on build-discipline.",
-      "version": "0.1.1",
-      "author": {
-        "name": "Ritual",
-        "url": "https://ritual.work"
-      },
-      "homepage": "https://github.com/ritual-work/claude-plugin",
-      "repository": "https://github.com/ritual-work/claude-plugin",
-      "license": "MIT",
-      "keywords": [
-        "marketing",
-        "positioning",
-        "growth",
-        "launch",
-        "ritual"
+        "context",
+        "mcp"
       ],
       "category": "productivity"
     }
