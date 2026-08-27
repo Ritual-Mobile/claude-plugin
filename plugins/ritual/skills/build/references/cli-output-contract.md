@@ -40,7 +40,7 @@ The two failure modes below are the most common leaks. They are forbidden, not d
    - ❌ `Because this spans three cross-functional tracks, attribution rules have real product decisions baked in.`
    - ✅ `What would you like to explore?` (then the options + a recommended one)
 
-2. **Silent checks stay silent — never name a tool or narrate plumbing.** Connection/freshness pings, config reads, workspace lookups, and code recon are invisible. Do NOT print "let me ping Ritual", "checking the workspace config", or any `mcp__plugin_ritual_ritual__*` tool name.
+2. **Silent checks stay silent — never name a tool or narrate plumbing.** Connection/freshness pings, config reads, workspace lookups, and code recon are invisible. Do NOT print "let me ping Ritual", "checking the workspace config", or any `mcp__ritual__*` tool name.
    - ❌ `Now I'll start the build flow. Let me check the workspace config and ping Ritual simultaneously.`
    - ❌ `Pinging Ritual to verify the connection…`
    - ✅ (nothing — run the check silently; the next user-visible line is the actual gate or status)
@@ -346,7 +346,7 @@ The pulse rule and visual specs live in the [§ /ritual context-pulse](#ritual-c
 - **Inline pulses are ALWAYS the one-line compact form — never the bar breakdown (load-bearing).** No exception for a tier crossing, a ≥15% jump, or a regression: inside `/ritual build` and `/ritual resume` the pulse is ONE score line + ONE lift-bridge sentence. The dimension bars (`Feature clarity ▓▓▓░░ 35%`, …), the `Reasoning readiness: A% → B%` two-line header, and the `Context surface:` tier line belong ONLY to an explicit `/ritual context-pulse` invocation, where the breakdown IS the deliverable. Rendering them inline buries the step's actual decision under a wall of numbers the user didn't ask for — the gate's content is the point; the pulse is a footnote to it.
 - A **regression** stays compact too: keep the `↑M%` direction marker and let the lift bridge carry the explanation in words (e.g. *"the dip is the unreviewed set — reviewing them is what settles it"*). One sentence, not a scorecard.
 - The score line goes near the top of the step's message; the lift bridge goes right before the action line. Both are additive, not replacements.
-- Prefer `mcp__plugin_ritual_ritual__score_context_pulse` (one canonical server-side call, persisted for trend reporting); fall back to deterministic agent-side counts only if the tool errors. No LLM call in the hot path either way.
+- Prefer `mcp__ritual__score_context_pulse` (one canonical server-side call, persisted for trend reporting); fall back to deterministic agent-side counts only if the tool errors. No LLM call in the hot path either way.
 
 **Why full labels (load-bearing):** Users read `28% debt` as a vague accounting number. They read `Context Debt 28%` as a named concept with weight — the same name they'd see in `/ritual context-pulse`'s full view, in the score breakdown, in the docs. Consistency across compact and full forms means the user doesn't have to translate.
 

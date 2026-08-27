@@ -54,7 +54,13 @@ if (!existsSync(join(src, 'SKILL.md'))) {
 // internal authoring material and stays behind.
 const SHIP = ['SKILL.md', 'references', '.ritual-bundle.json'];
 
-const dest = join(REPO, 'plugins', 'ritual', 'skills', 'ritual');
+// The skill ships as `build` (not `ritual`): plugin skills render as
+// <plugin>:<skill>, so the canonical name would read /ritual:ritual. Same
+// rename the chatgpt adapter makes. The dispatcher's other subcommands are
+// exposed as thin plugin COMMANDS in plugins/ritual/commands/ (committed,
+// not synced) that route into this skill.
+const dest = join(REPO, 'plugins', 'ritual', 'skills', 'build');
+rmSync(join(REPO, 'plugins', 'ritual', 'skills', 'ritual'), { recursive: true, force: true });
 rmSync(dest, { recursive: true, force: true });
 mkdirSync(dest, { recursive: true });
 for (const entry of SHIP) {
@@ -68,26 +74,13 @@ for (const entry of SHIP) {
 // cpSync copies dotfiles inside references/ too — drop Finder junk.
 execFileSync('find', [dest, '-name', '.DS_Store', '-delete']);
 
-// Plugin-bundled MCP servers are namespaced by Claude Code as
-// mcp__plugin_<plugin>_<server>__<tool> (docs: MCP reference § plugin-provided
-// servers), so the canonical bundle's mcp__ritual__* references would name
-// tools that don't exist under a plugin install. Rewrite them to the composed
-// prefix — every skill file, not just SKILL.md. Verified against the live
-// naming during the ladder test; if the observed prefix ever differs, this is
-// the one constant to fix.
-const PLUGIN_TOOL_PREFIX = 'mcp__plugin_ritual_ritual__';
-const rewriteToolNames = (file) => {
-  const body = readFileSync(file, 'utf8');
-  if (body.includes('mcp__ritual__')) {
-    writeFileSync(file, body.replaceAll('mcp__ritual__', PLUGIN_TOOL_PREFIX));
-  }
-};
-for (const file of execFileSync('find', [dest, '-name', '*.md'], { encoding: 'utf8' })
-  .trim()
-  .split('\n')) {
-  rewriteToolNames(file);
-}
-
+// Tool names stay CANONICAL (mcp__ritual__*): the plugin does NOT bundle its
+// MCP server — Claude Code cannot authenticate OAuth servers bundled by
+// plugins (anthropics/claude-code#75961: hidden from /mcp, no auth surface),
+// so the server is added user-scoped as `ritual` per the README, which is
+// exactly the name the canonical skill references. Revisit bundling (and the
+// mcp__plugin_ritual_<server>__ rewrite this script once did) when #75961 is
+// fixed upstream.
 const skillMd = join(dest, 'SKILL.md');
 const fm = readFileSync(skillMd, 'utf8');
 if (!/^channel: mcp-direct$/m.test(fm)) {
@@ -96,7 +89,12 @@ if (!/^channel: mcp-direct$/m.test(fm)) {
   );
   process.exit(1);
 }
-writeFileSync(skillMd, fm.replace(/^channel: mcp-direct$/m, 'channel: claude-plugin'));
+writeFileSync(
+  skillMd,
+  fm
+    .replace(/^channel: mcp-direct$/m, 'channel: claude-plugin')
+    .replace(/^name: ritual$/m, 'name: build'),
+);
 
 const stamp = /^stamp:\s*(\S+)/m.exec(fm)?.[1] ?? 'unknown';
 const cli = /^cli_version:\s*(\S+)/m.exec(fm)?.[1] ?? 'unknown';
@@ -104,5 +102,5 @@ writeFileSync(
   join(REPO, 'plugins', 'ritual', '.skill-stamp.json'),
   JSON.stringify({ stamp, cli_version: cli, channel: 'claude-plugin' }, null, 2) + '\n',
 );
-console.log(`✓ plugins/ritual/skills/ritual (stamp ${stamp}, cli ${cli}, channel claude-plugin)`);
+console.log(`✓ plugins/ritual/skills/build (stamp ${stamp}, cli ${cli}, channel claude-plugin)`);
 console.log('  next: review, bump plugins/ritual version on content change, commit.');

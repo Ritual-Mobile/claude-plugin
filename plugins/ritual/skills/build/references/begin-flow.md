@@ -30,8 +30,8 @@ When **not** to use:
 **Resolution order:**
 
 1. Read `.ritual/config.json` for the pinned `explorationId` (or `workspaceId` + repo key). This is the preferred binding.
-2. If no pin: call `mcp__plugin_ritual_ritual__list_explorations` to show the compact roster, then let the user pick (same picker as Step R2 in `references/resume-flow.md`).
-3. Call `mcp__plugin_ritual_ritual__get_exploration_status` on the resolved exploration to read its LIVE state — do NOT assert status from memory or prior turns.
+2. If no pin: call `mcp__ritual__list_explorations` to show the compact roster, then let the user pick (same picker as Step R2 in `references/resume-flow.md`).
+3. Call `mcp__ritual__get_exploration_status` on the resolved exploration to read its LIVE state — do NOT assert status from memory or prior turns.
 
 **Do not re-run planning or discovery.** This step reads what already exists. If unsure which exploration, call `list_explorations` first.
 
@@ -40,7 +40,7 @@ When **not** to use:
 **Read live state before asserting anything (load-bearing — grounding policy).** A brief satisfies this gate from EITHER source — check both, in this order:
 
 1. **Local brief on disk.** Read `.ritual/build-brief.md`. If it exists with real content (not the `_Build brief not available yet._` placeholder), that IS an executable brief — proceed to Step B3. This is the prelogin path: `/ritual refine` grounded the marketing-site brief on disk WITHOUT calling the core `generate_build_brief`, so there is no server build-brief row, and that is expected. Do not block on the server when a real brief is already on disk.
-2. **Server brief.** If there is no usable local brief, call `mcp__plugin_ritual_ritual__get_exploration_status`. If it shows an accepted/ready build brief, that satisfies the gate too (the normal `/ritual build` path) — proceed to Step B3.
+2. **Server brief.** If there is no usable local brief, call `mcp__ritual__get_exploration_status`. If it shows an accepted/ready build brief, that satisfies the gate too (the normal `/ritual build` path) — proceed to Step B3.
 
 `begin` does NOT require a core server build brief; a local `.ritual/build-brief.md` stands on its own.
 
@@ -145,10 +145,10 @@ re-narrate the blocked state, never fabricate a PR URL, never push anywhere but 
 
 #### Step B5 — Sync implementation
 
-When Step 11 completes (all slices implemented and PRs opened), call `mcp__plugin_ritual_ritual__sync_implementation` to register the result in the knowledge graph. This is the same terminal step as in the continuous build flow.
+When Step 11 completes (all slices implemented and PRs opened), call `mcp__ritual__sync_implementation` to register the result in the knowledge graph. This is the same terminal step as in the continuous build flow.
 
 ```
-mcp__plugin_ritual_ritual__sync_implementation({
+mcp__ritual__sync_implementation({
   exploration_id: <resolved exploration id>,
   // remaining params per the MCP tool contract
 })
