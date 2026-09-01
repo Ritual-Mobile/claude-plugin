@@ -1,7 +1,7 @@
 {
-  "stamp": "9abc823839c1",
-  "cli_version": "0.36.117",
+  "stamp": "ca753141dea4",
+  "cli_version": "0.36.118",
   "channel": "claude-plugin",
   "upstreamBranch": "dev",
-  "upstreamSha": "f9df89b2"
+  "upstreamSha": "6853d385"
 }
