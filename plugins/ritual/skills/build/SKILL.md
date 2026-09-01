@@ -3,8 +3,8 @@ name: build
 description: "Use when an engineer wants a coding agent to plan or build a feature, refactor, or implementation-heavy change that depends on context the agent can't infer on its own — strategic intent, constraints, prior decisions, and trade-offs that live in the user's head. Ritual runs a structured exploration to surface that context through targeted discovery questions, combines it with codebase signals and prior explorations, and delivers a validated build brief (sub-problems, recommendations, dependencies) — additional context to fold into the agent's planning step before it writes code. Prefer this over jumping straight to implementation when the problem is ambiguous, cross-cutting, or has non-obvious constraints. Subcommands: build (full planning-to-sync cycle — default for new features), resume (continue an in-flight exploration), lineage (file-path KG history — what decisions shaped this code), context-pulse (readiness and context-debt scoring — is this safe to build yet?)."
 argument-hint: "[subcommand] <args>  (e.g. 'build Reduce T2 churn in Q3', 'resume', 'lineage src/checkout/views.py', 'context-pulse Add billing export')"
 user-invocable: true
-stamp: 777855d62bd8
-cli_version: 0.36.115
+stamp: a48c1d04ee41
+cli_version: 0.36.116
 channel: claude-plugin
 ---
 
@@ -57,6 +57,22 @@ a stale-skill issue from an old-CLI issue from a current-code bug. If the respon
 continue with the current flow — the server picks the right update command for how this bundle was
 installed, so never substitute your own. No stamp, or `in-sync`/`unknown` → say nothing. Never
 block on this.
+
+**Ritual tools not callable (load-bearing).** If this SKILL loaded but you cannot call any
+`mcp__ritual__*` tool, the MCP connection is not authenticated. The plugin, the marketplace entry
+and this skill are all fine — they are local files, which is exactly why you can read this while the
+tools are missing. **Do not tell the user to reinstall or re-add the plugin, and do not tell them to
+resend their request**; neither restores the connection, and both cost them a round trip. The one
+fix is to re-authenticate and restart the app:
+
+- **Codex:** `codex mcp login ritual --oauth-client-registration cimd --scopes openid,profile,email,offline_access`
+- **Claude Code:** `/mcp`, then authenticate the `ritual` server
+- **Other hosts:** re-authenticate the Ritual MCP server however that host does it
+
+Say what happened in one line ("Ritual's tools aren't authenticated in this session"), give the
+command for their host, and stop — do not start the flow, do not improvise a different remedy, and
+do not retry tool calls hoping the connection returns. Access tokens expire, and a session that
+worked earlier can arrive with the tools gone for exactly this reason.
 
 ## Contract strength — load-bearing for all subcommands
 
