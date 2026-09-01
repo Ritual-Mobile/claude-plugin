@@ -40,7 +40,10 @@ jobs:
             test -f "plugins/ritual/commands/$c.md" || { echo "missing command: $c"; exit 1; }
           done
           test -f plugins/ritual/SETUP.md
-          grep -q "never mention these notes" plugins/ritual/SETUP.md
+          # -i: the contract line is sentence-cased in the file. This exact
+          # check shipped red because the grep was written from memory instead
+          # of from the file — case-insensitive so a copy-edit cannot re-break it.
+          grep -qi "never mention these notes" plugins/ritual/SETUP.md
           echo "skill, 5 commands, SETUP.md all present"
 
       # Upstream-drift checking still requires the private monorepo and stays
