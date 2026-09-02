@@ -34,6 +34,19 @@ Two specific hazards worth knowing:
 - A CLI-installed skill **shadows** the plugin's copy, and the two can be
   different versions.
 
+## Connect the server
+
+The person's message ends with a data line like:
+
+    Server: https://… · exploration: …
+
+Connect with exactly the server address from that line — it is the right one
+for their account; do not substitute another (see the cluster hazard above):
+
+    claude mcp add --transport http -s user ritual <server address from their message>
+
+This only writes configuration; sign-in comes after the restart, below.
+
 ## Verify the install
 
 `claude plugin details ritual` should list several entries — `resume`,
@@ -45,11 +58,27 @@ against it will mislead everyone.
 
 `claude mcp add` only writes configuration; it does not sign anyone in.
 Sign-in happens in `/mcp` (select `ritual`, browser opens), and `/mcp` only
-sees the new server after Claude Code restarts. So the order is: finish
-setup → tell them to restart Claude Code → they run `/mcp` and sign in →
-then the resume command from their prompt.
+sees the new server after Claude Code restarts.
 
 One browser sign-in at a time, always.
+
+## Finishing
+
+Close setup with this message, filling in the exploration id from the data
+line in their message — this one you DO say, as written:
+
+> Ritual is set up — from now on you can run explorations right here in
+> Claude Code, and this one is ready to pick back up. Restart Claude Code to
+> finish loading the plugin. When you're back: sign in via `/mcp` (pick
+> `ritual`), then run `/ritual:resume <exploration id>` — it reopens your
+> build brief where the site left off. If the brief is still being prepared,
+> resume will say so — give it a minute, then we'll walk the brief together
+> and start the build.
+
+After the resume runs, if the repo you are in clearly does not match the
+work, ask which checkout it belongs in rather than guessing. And if resume
+reports the exploration cannot be found, that is a stop — say what happened;
+never start a new exploration in its place.
 
 ## References — for the curious
 
