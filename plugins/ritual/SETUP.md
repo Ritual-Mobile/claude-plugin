@@ -68,12 +68,29 @@ Close setup with this message, filling in the exploration id from the data
 line in their message — this one you DO say, as written:
 
 > Ritual is set up — from now on you can run explorations right here in
-> Claude Code, and this one is ready to pick back up. Restart Claude Code to
-> finish loading the plugin. When you're back: sign in via `/mcp` (pick
-> `ritual`), then run `/ritual:resume <exploration id>` — it reopens your
-> build brief where the site left off. If the brief is still being prepared,
-> resume will say so — give it a minute, then we'll walk the brief together
-> and start the build.
+> Claude Code, and this one is ready to pick back up.
+>
+> Restart Claude Code from the repo you'll build in (`cd` there first) to
+> finish loading the plugin. When you're back, sign in via `/mcp` (pick
+> `ritual`), then run:
+>
+> ```
+> /ritual:resume <exploration id>
+> ```
+>
+> It reopens your build brief where the site left off. If the brief is still
+> being prepared, resume will say so — give it a minute.
+>
+> If the idea was just a test drive, skip resume and start on something real:
+>
+> ```
+> /ritual:build <the thing you're actually building>
+> ```
+>
+> Describe it the way you'd brief a teammate — one or two sentences is plenty.
+
+Both commands go in their own fenced code block, exactly as above — that is
+what gives them a copy button in the terminal.
 
 After the resume runs, if the repo you are in clearly does not match the
 work, ask which checkout it belongs in rather than guessing. And if resume
