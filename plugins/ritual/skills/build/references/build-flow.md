@@ -1440,24 +1440,30 @@ does several DB round-trips; firing them concurrently exhausts the server's
 connection pool and returns 503s on the later Areas (observed in prod). The
 batch endpoint exists precisely to avoid this — use it.
 
-Call `mcp__ritual__accept_discovery_questions_batch` **once** with every
-Area's picks in a single atomic request:
-- `state_id` (from the discovery state)
-- `picks[]` — one entry per Area the user picked in, each `{ matter_id, question_ids[] }`
+Call `mcp__ritual__accept_discovery_questions_batch` **once** with `state_id`
+only — **OMIT `picks`.** The server commits the selection it already holds:
+the set you recorded via `select_discovery_questions` (kept current by the
+user's replies during the walk), or the panel's own toggles where a picker
+component rendered. Passing ids makes you a second copy of a fact you do not
+own, and a stale copy commits the wrong set. `picks` exists only for callers
+that never mark a selection at all; this flow always does.
 
 ```ts
-// ONE call. All Areas, one atomic transaction, one successor state.
-await accept_discovery_questions_batch(state_id, [
-  { matter_id: areaA.matter_id, question_ids: areaA.question_ids },
-  { matter_id: areaB.matter_id, question_ids: areaB.question_ids },
-  // …one entry per Area with at least one pick
-]);
+// ONE call, no picks. The server owns the selection; the response reports it.
+await accept_discovery_questions_batch(state_id);
 ```
 
-Use the single-Area `accept_discovery_questions` ONLY when the user picked in
-exactly one Area. If for some reason you must use it across several Areas
-(e.g. the batch tool is unavailable), call it **sequentially** (`await` each
-in turn) — never in parallel.
+**The response is the truth of what was committed (load-bearing).** If you
+reference the committed set anywhere downstream — the anti-goals lead-in, the
+run kickoff, an answer to "how many?" — use the accept response's
+`materialized[]` count, never the number you suggested or last rendered. On a
+panel surface the user may have grown or shrunk the selection after your
+render; when the counts differ, the response is right and your context is
+stale — say so plainly if asked, without exposing the machinery.
+
+Use the single-Area `accept_discovery_questions` ONLY as a fallback when the
+batch tool is unavailable — and then **sequentially** (`await` each in turn),
+never in parallel.
 
 User-facing: emit NOTHING for the commit — not per Area, and not once for the
 whole batch. The pick is the user's decision and it is already on screen; a line
@@ -2624,8 +2630,11 @@ Reply `ready` once you're in plan mode, or `skip` if yours doesn't have one.
 
 **`skip` skips PLAN MODE, never the scope audit.** On the skip branch you still
 hold a plan — the slice breakdown you just rendered. Audit THAT: pass the slice's
-RB list and intended file changes to `mcp__ritual__audit_plan` as `plan_content`
-before editing anything. The audit exists to catch work that drifts outside the
+RB list and intended file changes to `mcp__ritual__audit_plan` as `plan_content`,
+and the slice's in-scope requirement ids as `slice_requirement_ids`, before
+editing anything.
+
+ The audit exists to catch work that drifts outside the
 brief's frozen scope contract, and that risk does not go away because the host
 has no plan-mode affordance. A gate that only runs on one branch of an optional
 mode is not a gate.
@@ -2670,7 +2679,9 @@ The user is now in plan mode (from Step 11.0.5). The agent must:
 
    This is what makes plan mode deliver on the promise of the brief (which delivers on the recs). Feeding the contract in UP FRONT prevents the divergences Step 11.1.6 would otherwise have to catch and send back.
 
-   **For a sliced build (11.0.0):** scope the plan to the CURRENT slice — cover only the in-scope requirements assigned to this slice, and put the other slices' requirements under the "Do NOT implement — deferred to a LATER PR" line. The audit (11.1.6) then reads those later-slice requirements as intentionally deferred, not as missing coverage.
+   **For a sliced build (11.0.0):** scope the plan to the CURRENT slice — cover only the in-scope requirements assigned to this slice, and put the other slices' requirements under the "Do NOT implement — deferred to a LATER PR" line so plan mode does not touch them. That line is for plan mode's eyes only: the audit (11.1.6) does NOT read deferral out of the plan text. Deferral reaches the audit as the typed `slice_requirement_ids` argument — the `inScope[].id`s this slice covers — which is what makes the other slices' requirements audit as deferred rather than missing.
+   
+   **Non-goals come in two grades.** `antiGoals[]` are binding: crossing one blocks the audit. `antiGoalCandidates[]` (when present) are UNCONFIRMED — verbatim text from a rejected recommendation's title or a comment, with a `provenance` saying so. List them to plan mode as "unconfirmed non-goal candidates — do not treat as decisions", never under the binding non-goals line.
 
 3. **Produce a numbered implementation plan** that:
    - has **one or more steps covering EVERY in-scope requirement** above (map each step to the requirement id it implements — this is the coverage the audit checks),
@@ -2746,11 +2757,15 @@ Reply `audit-plan` to run it, or `proceed` to start implementing.
 [USER PAUSE] Branch on response:
 
 - **`audit-plan`** (or auto, in `strict` mode): call
-  `mcp__ritual__audit_plan(exploration_id, plan_content)` where `plan_content`
-  is the implementation plan plan mode just produced (the same text you'd save to
-  `IMPLEMENTATION-PLAN.md`). The server normalizes it to plan operations and runs
+  `mcp__ritual__audit_plan(exploration_id, plan_content, slice_requirement_ids?)`
+  where `plan_content` is the implementation plan plan mode just produced (the
+  same text you'd save to `IMPLEMENTATION-PLAN.md`) and, for a sliced build,
+  `slice_requirement_ids` is the list of `inScope[].id`s the CURRENT slice
+  covers (omit it for a whole-brief plan). The server normalizes the plan to
+  plan operations, audits the other slices' requirements as deferred, and runs
   R6 against the brief's scope contract. It's async — the tool polls to
   completion and returns a thin payload:
+  
   - `audit_status: "ok"` (no divergences) → tell the user the plan is faithful to
     the brief and continue to Step 11.2.
   - `audit_status: "needs_attention"` → render each divergence (`divergence_kind`
@@ -2762,11 +2777,18 @@ Reply `audit-plan` to run it, or `proceed` to start implementing.
     one"), **scope_creep** ("step N covers X but does substantially more"). Then
     pause: *"Revise the plan to address these (back to plan mode), or proceed and
     accept the divergences? Reply `revise` or `proceed`."*
-  - `audit_status: "blocked"` (an `anti_goal_violation`) → surface it prominently:
+  - `audit_status: "blocked"` (a BINDING `anti_goal_violation`) → surface it prominently:
     *"⚠ The plan advances something the brief explicitly forbids: {evidence}. This
     crosses a non-goal you set during discovery."* In `strict` mode this blocks —
     require `revise` or an explicit `override` with a one-line justification. In
     other modes, strongly recommend `revise`.
+  - A divergence with `advisory: true` is an `anti_goal_violation` against an
+    UNCONFIRMED candidate — read `brief_reference.provenance` and say where the
+    text came from: *"The plan does {X}. Ritual holds '{text}' as a non-goal
+    candidate ({source}, {proposalStatus}) — nobody confirmed it. Keep it as a
+    non-goal, or drop the candidate?"* It never blocks and it never counts as a
+    decision the brief made; the fix is to settle the candidate (confirm or
+    dismiss it), not to bend the plan.
   - On `revise`: the audit response carries a ready-to-paste **`revision_directive`**
     (assembled from the structured `revisions[]`, blockers first — each is a
     `request_plan_revision` repair keyed to a specific divergence). Feed that
@@ -3185,7 +3207,7 @@ This subcommand exclusively uses Ritual MCP tools, in the order they appear:
 2. `mcp__ritual__classify_request` (Step 0.7 — re-called ONLY on a JOB correction; the workspace stays as `prepare_build` resolved it)
 3. `mcp__ritual__list_workspaces` (Step 1 — ONLY on the optional `change` escape)
 3a. `mcp__ritual__create_workspace` (Step 1 — ONLY if the user picks "create new" inside `change`)
-4. ~~`mcp__ritual__list_templates`~~ — **not registered on the MCP surface.** Step 2 is server-side template resolution; do not call this tool. See Step 2 for the rationale.
+4. ~~`list_templates`~~ — **not registered on the MCP surface.** Step 2 is server-side template resolution; do not call this tool. See Step 2 for the rationale.
 7. `mcp__ritual__generate_considerations` (Step 4)
 8. `mcp__ritual__refine_considerations` (Step 4.2, iteration only)
 9. `mcp__ritual__generate_problem_statement` (Step 5)
