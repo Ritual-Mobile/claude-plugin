@@ -1,5 +1,5 @@
 <!-- GENERATED from references/build-flow.md by apps/cli/scripts/generate-lite-flow.js — DO NOT EDIT. -->
-<!-- source-sha: 9d9cd388c3696858 -->
+<!-- source-sha: b7112a1fc0c7fbb7 -->
 
 # /ritual lite — fast build (generated; do not edit)
 
@@ -2432,11 +2432,18 @@ When the brief content is in hand (from generate OR polling), **don't dump 300 l
      {path2} — {pattern to extend, ≤ 60 chars}
      {path3} — {pattern to extend, ≤ 60 chars}
 
+   What changed:
+   {per-requirement one-liners from the Step 10b.5 pass: verified / sharpened / contradicted / not found, user nouns only}
+
+   What this changed for me (your coding agent):
+   » {2–3 lines per the agent-debrief rules in refine-flow.md — same block, same rules}
+
    {ONLY IF Previously Deferred section is non-empty:}
    ⚠ {N} previously-deferred item{s} overlap this scope — see "Previously Deferred" section in BUILD-BRIEF.md
    ```
 
    Rules for the summary (CLI Tenets #3, #6):
+   - **The two debrief sections ("What changed" / "What this changed for me (your coding agent)") are mandatory and follow refine-flow.md's rules** — that file owns the agent-debrief contract (baseline = the user's original raw ask, 2–3 `»` lines, near-miss framing, calibrated `Net:`); do not restate its rules here, read them there. In this flow the per-requirement one-liners come from the Step 10b.5 verification outcomes instead of a grounding diff — same sections, same voice, so the brief-ready render reads identically whether the brief arrived via build or via refine.
    - **The `Verification:` line is mandatory** — render the actual numbers from Step 10b.5. If 10b.5 was legitimately skipped (brief made zero specific code citations), render `Verification: n/a — brief made no code citations to verify` instead of omitting the line. The line existing-but-zero is fine; the line being MISSING is a structural signal that 10b.5 was skipped without justification. Reviewing this summary should let the user (and a future SKILL self-check) catch a skipped-verification regression by spotting the missing line. The failure this guards: Step 10b.5 silently skipped on a brief that cites real symbols — exactly the case 10b.5 is supposed to verify.
    - **Cap RBs and anchors at top 3 each.** Engineers don't read 12-row tables in terminals.
    - **Omit any section that's empty.** No "Previously Deferred: none" lines — just don't render that line. (The `Verification:` line is exempt — it's always rendered, see above.)
