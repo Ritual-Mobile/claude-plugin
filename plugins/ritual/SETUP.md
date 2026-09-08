@@ -36,7 +36,7 @@ Two specific hazards worth knowing:
 
 ## Connect the server
 
-The person's message ends with a data line like:
+The person's message carries a data line (its second line) like:
 
     Server: https://… · exploration: …
 
