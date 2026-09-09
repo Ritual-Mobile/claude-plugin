@@ -190,7 +190,7 @@ Silence on no-data: if a state bucket is empty, don't render it. Don't print "**
 
 #### Step R3 — Branch-existence sanity check (`done` / `in_flight` only)
 
-> **Requires shell + git.** Steps R3 and R3.5 verify KG state against local git, so they only run on agents that can execute shell + `git`/`gh` (Claude Code, Codex, Cursor agent mode, …). **If your agent can't run shell/git** (v0, Lovable, browser-only agents), skip both probes entirely, treat the KG state badge as truth, and tell the user you couldn't cross-check it against local git history.
+> **Requires shell + git.** Steps R3 and R3.5 verify knowledge graph state against local git, so they only run on agents that can execute shell + `git`/`gh` (Claude Code, Codex, Cursor agent mode, …). **If your agent can't run shell/git** (v0, Lovable, browser-only agents), skip both probes entirely, treat the knowledge graph state badge as truth, and tell the user you couldn't cross-check it against local git history.
 
 Same as `/ritual build` Step 1.5 step 5's branch-existence check. Before treating an exploration as ✓ done, verify the implementation record's branch / PR actually exists locally or remotely:
 
@@ -201,15 +201,15 @@ git rev-parse --verify "origin/${implementationRecord.branch}" 2>/dev/null \
 
 If neither resolves, surface as a single-action proposal:
 
-> Note: per the KG this is shipped on `{branch}` (PR #{num}), but I don't see that branch in this repo or remote. The implementation record may be bootstrap/synthetic data.
+> Note: per the knowledge graph this is shipped on `{branch}` (PR #{num}), but I don't see that branch in this repo or remote. The implementation record may be bootstrap/synthetic data.
 >
 > Treat as ready-to-implement-for-real? **(y/N, or tell me what's actually shipped)**
 
 #### Step R3.5 — Implementation footprint check (`ready` / `in_flight` only)
 
-The KG can't distinguish "brief generated, no code yet" from "implementation done but not yet synced" from "implementation was started and then dropped." All three look like state `ready` (or `in_flight`) because no `ImplementationRecord` row exists yet — that's only written on `sync_implementation`.
+The knowledge graph can't distinguish "brief generated, no code yet" from "implementation done but not yet synced" from "implementation was started and then dropped." All three look like state `ready` (or `in_flight`) because no `ImplementationRecord` row exists yet — that's only written on `sync_implementation`.
 
-When the KG asserts `ready` or `in_flight`, do a **footprint check** using the `Ritual-Exploration: <id>` commit trailer (written by Step 11.2). The trailer is a stable anchor in git history that survives branch deletion (lives in reflog for ~30 days) and persists across machines via push.
+When the knowledge graph asserts `ready` or `in_flight`, do a **footprint check** using the `Ritual-Exploration: <id>` commit trailer (written by Step 11.2). The trailer is a stable anchor in git history that survives branch deletion (lives in reflog for ~30 days) and persists across machines via push.
 
 Run these probes:
 
@@ -226,23 +226,23 @@ git rev-parse --verify "origin/feat/${exploration_slug}" 2>/dev/null
 gh pr list --search "Ritual-Exploration: ${exploration_id}" --state all --json number,state,title,headRefName,mergedAt 2>/dev/null
 ```
 
-Cross-reference findings against the KG state:
+Cross-reference findings against the knowledge graph state:
 
-| KG state | Footprint found | What happened | What to surface |
+| knowledge graph state | Footprint found | What happened | What to surface |
 |---|---|---|---|
 | `ready` | None | User hasn't started coding | "Brief ready, no code yet. Pick up at Step 11 (Implement)?" |
 | `ready` | Branch + commits with trailer | Mid-implementation, unsynced | "I see {N} commits on `{branch}` attributed to this exploration. Continue coding, run the gate, or `sync_implementation` now?" |
 | `ready` | Open PR with trailer | PR open, awaiting review/merge | "PR #{N} is open ({state}, {head_ref}). Wait for merge, or sync the current state of the branch?" |
 | `ready` | Merged PR with trailer, no impl record | PR merged but `sync_implementation` was skipped | "PR #{N} merged on {date} but `sync_implementation` was never called. Want me to sync from the PR now?" *(There is no `/ritual sync <pr-url>` command — walk the user through Step 12 manually using the PR's commits + decisions.)* |
 | `ready` | **Only orphan commits in `git log --all` (no live branch / no live PR)** | **Work was dropped — branch deleted, reset, or stashed-then-discarded** | "⚠ I see {N} commits attributed to this exploration in your git history from {N} days ago, but the branch is gone and no PR was opened. Looks like the implementation was started and dropped. Want me to: **(a)** show you the orphan commits so you can recover them (`git cherry-pick`), OR **(b)** start fresh implementation from the brief?" |
-| `in_flight` | Branch + commits match KG `branch` field | Implementation in progress (normal mid-loop state) | Continue per the state badge's suggested next step (refresh brief on remaining work). |
-| `in_flight` | KG says branch X, but Probe B says different branch Y carries the commits | Branch was renamed/rebased after KG was last updated | "KG says `{x}` but I see Ritual-attributed commits on `{y}`. Update the KG branch name, or use `{y}` for the rest of this flow?" |
+| `in_flight` | Branch + commits match knowledge graph `branch` field | Implementation in progress (normal mid-loop state) | Continue per the state badge's suggested next step (refresh brief on remaining work). |
+| `in_flight` | knowledge graph says branch X, but Probe B says different branch Y carries the commits | Branch was renamed/rebased after knowledge graph was last updated | "knowledge graph says `{x}` but I see Ritual-attributed commits on `{y}`. Update the knowledge graph branch name, or use `{y}` for the rest of this flow?" |
 
 **The dropped-work case (row 5) is the load-bearing one.** Without this check, the user re-runs `/ritual build` and the agent silently regenerates the brief, never telling the user they lost a day of work that's still recoverable from the reflog.
 
 **Skip the probes when:**
 
-- **Your agent can't run shell + git** (see the R3 guard above) — skip entirely and treat the KG state as truth.
+- **Your agent can't run shell + git** (see the R3 guard above) — skip entirely and treat the knowledge graph state as truth.
 - The exploration was just created in this same session — no time to have orphan commits.
 - The user just synced (the `done` / `in_flight` state badge was set within the last few minutes).
 - The exploration is in a state where the footprint check doesn't apply (`in_progress`, `awaiting_admin`, `implemented_ahead`).

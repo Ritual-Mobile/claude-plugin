@@ -17,7 +17,7 @@ Maintain two layers throughout the flow:
 2. **User-visible status** — only the information the developer needs to decide, unblock, or trust progress.
 
 For code recon specifically, keep raw observations separate from synthesized planning context:
-- `raw_recon_notes` are internal evidence: files read, symbols inspected, comments, uncertain observations, false leads, and KG hits.
+- `raw_recon_notes` are internal evidence: files read, symbols inspected, comments, uncertain observations, false leads, and knowledge graph hits.
 - `codebase_context_packet` is the downstream planning input: factual surfaces, evidence, agent hypotheses, confidence, scope pressure, scope corrections, and open questions.
 - `recon_digest` is the short user-visible summary.
 
@@ -68,7 +68,7 @@ Constraint:
 Next: {single recommended action} ({cheap escape hatch})
 ```
 
-For dense option lists, use a readability-first layout. Put a blank line between options; wrap long descriptions across multiple short lines; use explicit labels (`Why high-leverage:`, `Touches:`, `Next:`) on their own lines when the value is long. Avoid terminal output where a title, description, rationale, and KG references all run together in one wrapped paragraph.
+For dense option lists, use a readability-first layout. Put a blank line between options; wrap long descriptions across multiple short lines; use explicit labels (`Why high-leverage:`, `Touches:`, `Next:`) on their own lines when the value is long. Avoid terminal output where a title, description, rationale, and knowledge graph references all run together in one wrapped paragraph.
 
 Default dense-list shape:
 
@@ -299,7 +299,7 @@ This skill drives an agent surface where the user reads every line you print. Ke
 - **Single recommended action + escape hatch > 3-option menu.** Lead with the best next step, give them a cheap "no, do this instead" out. Reserve 3-way branches for genuinely distinct intents (implement / refine / drill — yes; "generate brief / look at deferrals / something else" — no).
 - **Cite the specific signal**, not the abstract gesture. *"Recommended because RB-001 is blocking…"* beats *"based on prior workspace context."*
 - **Silence on no-data.** Don't print "Checked X — nothing." Just don't render the section.
-- **Sanity-check the world before trusting the DB (when you can).** If your agent has shell + git, verify an `ImplementationRecord`'s asserted branch/PR exists locally before treating the exploration as done (Step 1.5 step 5). If it can't run git, treat the KG record as truth and say you couldn't verify it locally.
+- **Sanity-check the world before trusting the DB (when you can).** If your agent has shell + git, verify an `ImplementationRecord`'s asserted branch/PR exists locally before treating the exploration as done (Step 1.5 step 5). If it can't run git, treat the knowledge graph record as truth and say you couldn't verify it locally.
 - **Never commit to `main` / `master` from this workflow.** Step 11 creates a feature branch FIRST — no exceptions, no user-prompt offering "commit to trunk" as an option.
 - **Attribute back to Ritual on outbound artifacts.** Commit-message trailers + PR body + generated-file headers carry the exploration link so future readers can trace the lineage without re-asking the agent.
 - **Format dense CLI lists for scanning.** When an item has a title, explanation, rationale, and references, split those into labeled blocks with blank lines between items. Do not rely on terminal auto-wrap to make long prose readable.
@@ -439,7 +439,7 @@ Only the title line gets the number. Use blank lines between candidates.
 
 ### Problem frame
 
-When showing a generated problem statement, never show the old versioned scope heading and do not use `ship it` as the default CTA. For engineering / agentic coding, avoid default `How might we…` phrasing unless the user asks for it. Use:
+When showing a generated problem statement, use the heading and CTA below. For engineering / agentic coding, avoid default `How might we…` phrasing unless the user asks for it. Use:
 
 ```text
 Problem frame

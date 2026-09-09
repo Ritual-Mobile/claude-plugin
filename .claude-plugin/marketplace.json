@@ -10,7 +10,7 @@
       "name": "ritual",
       "source": "./plugins/ritual",
       "description": "Plan before you build. Ritual runs a structured exploration — discovery questions, recommendations, a validated build brief — so your coding agent gets the intent, constraints, and prior decisions it can't infer from the repo. Bundles the Ritual MCP server connection and the /ritual skill.",
-      "version": "0.2.0",
+      "version": "0.2.13",
       "author": {
         "name": "Ritual",
         "url": "https://ritual.work"

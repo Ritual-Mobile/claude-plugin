@@ -46,8 +46,8 @@ The pulse operates in one of four distinct modes, each with different scoring in
 
 | Mode | Invocation | What "current codebase" is worth |
 |---|---|---|
-| **A. Naked** | `/ritual context-pulse` with no args, no session context, no in-flight exploration | Codebase is **table stakes** — having one doesn't move the score for a feature that hasn't been described. Score is near zero (just whatever workspace KG counts toward Repo Grounding). Recommended action: *"Give me a feature description, or run `/ritual build`."* |
-| **B. Cold-call feature** | `/ritual context-pulse Add billing export for workspace admins` (description, no matching exploration) | The agent maps the description to the codebase + KG, finds candidate files and prior decisions, and offers to seed `CONTEXT-<feature>.md` as a pre-build context file. The mapping work is what moves Repo Grounding — the codebase only counts once it's been **mapped to THIS feature**. |
+| **A. Naked** | `/ritual context-pulse` with no args, no session context, no in-flight exploration | Codebase is **table stakes** — having one doesn't move the score for a feature that hasn't been described. Score is near zero (just whatever workspace knowledge graph counts toward Repo Grounding). Recommended action: *"Give me a feature description, or run `/ritual build`."* |
+| **B. Cold-call feature** | `/ritual context-pulse Add billing export for workspace admins` (description, no matching exploration) | The agent maps the description to the codebase + knowledge graph, finds candidate files and prior decisions, and offers to seed `CONTEXT-<feature>.md` as a pre-build context file. The mapping work is what moves Repo Grounding — the codebase only counts once it's been **mapped to THIS feature**. |
 | **C. Existing exploration** | `/ritual context-pulse exp-7a2b9c` (exploration id) OR `/ritual context-pulse "Conversion attribution"` (name lookup) | Fetch state, score against current data. The standard path. |
 | **D. Inline** | Hook lines fired automatically inside `/ritual build` (Steps 7.4, 8, 9, 10 — see `cli-output-contract.md` § Inline pulses, the source of truth for in-flow rendering) | Computed per-step delta against the prior pulse for the same exploration. |
 
@@ -74,11 +74,11 @@ Sub-steps:
 
 1. **Light code recon based on the feature description.** Extract keywords from the description (nouns / verbs / domain terms). Glob for matching paths. Read 3–5 candidate files briefly. Build a candidate `sources[]` array (~3–8 paths).
 
-2. **KG query for prior context on candidate files.** Call `mcp__ritual__query_knowledge_graph(workspace_id, sources=[candidate paths])`. Note any prior decisions, open deferrals, or implementations on these files.
+2. **knowledge graph query for prior context on candidate files.** Call `mcp__ritual__query_knowledge_graph(workspace_id, sources=[candidate paths])`. Note any prior decisions, open deferrals, or implementations on these files.
 
 3. **Score the mode-B pulse** using the standard 4-dimension formula. Repo Grounding will be the dominant contributor since this is the only dimension that can move pre-exploration. Decision resolution = 0 (no recs/discovery yet). Feature clarity scores against the description text the user gave. Assumption safety = 0 (no anti-goals yet).
 
-4. **Surface the pulse + the mapping result.** Use the full pulse visual (CP5 below) because Mode B always crosses some tier ground — and surface a "found in this workspace" callout for what the KG returned:
+4. **Surface the pulse + the mapping result.** Use the full pulse visual (CP5 below) because Mode B always crosses some tier ground — and surface a "found in this workspace" callout for what the knowledge graph returned:
 
    ```
    Reasoning readiness:  22%
@@ -87,14 +87,14 @@ Sub-steps:
 
      Feature clarity      ▓▓░░░░░░░░ 20%  (description present; no acceptance criteria)
      Decision resolution  ░░░░░░░░░░  0%  (no recs / no discovery yet)
-     Repo grounding       ▓▓▓░░░░░░░ 30%  (4 candidate files + 2 prior KG decisions)
+     Repo grounding       ▓▓▓░░░░░░░ 30%  (4 candidate files + 2 prior knowledge graph decisions)
      Assumption safety    ░░░░░░░░░░  0%  (no anti-goals declared)
 
    Found in this workspace that's relevant:
      • Exploration "Anonymous checkout opt-in" (shipped) — decision on
        permission scoping, applies to admin-export
      • Exploration "Payment-method routing" (shipped) — CSV export pattern
-       in apps/api/src/billing/export.ts
+       in the Ritual monorepo
      • Open deferral RB-7 "rate-limit per-tenant on exports" (major) —
        may collide with this feature
    ```
@@ -102,7 +102,7 @@ Sub-steps:
 5. **Offer to seed `CONTEXT-<feature-slug>.md`.** Single-action proposal:
 
    > Want me to seed this as a starter context file? `CONTEXT-billing-export.md`
-   > will capture: your ask + the 4 candidate files + the 2 prior KG decisions
+   > will capture: your ask + the 4 candidate files + the 2 prior knowledge graph decisions
    > + the deferral. `/ritual build` will pick it up at Step 3 and skip
    > recon. Pre-loads context — debt should drop ~20-30% before discovery
    > even runs.
@@ -135,7 +135,7 @@ Sub-steps:
    - {path 2}  # {…}
    - …
 
-   ## Prior KG context
+   ## Prior knowledge graph context
    {for each prior decision on candidate files:}
    - **"{exploration name}"** (shipped {date}, PR #{num})
      Decision: {decision.choice}
@@ -159,11 +159,11 @@ Sub-steps:
 
 **Slug naming:** kebab-case from the feature description, ≤ 40 chars. *"Add billing export for workspace admins"* → `billing-export`. The agent picks the slug; if there's a collision with an existing `CONTEXT-*.md` for a DIFFERENT ask, append a short suffix (`-v2`, or a 4-char hash).
 
-**Overwrite policy** — bias toward freshness, not preservation. The KG can move between pulses (another developer ships an implementation, an admin sets new anti-goals, a deferral closes), so a seed older than ~hours is potentially stale on important signals. Default behavior:
+**Overwrite policy** — bias toward freshness, not preservation. The knowledge graph can move between pulses (another developer ships an implementation, an admin sets new anti-goals, a deferral closes), so a seed older than ~hours is potentially stale on important signals. Default behavior:
 
 - **Same ask, re-pulse (the common case)**: **always auto-refresh, never prompt.** Write a `<!-- Refreshed at YYYY-MM-DDTHH:MM:SSZ -->` HTML comment at the top of the file so the freshness is visible in the file itself. Add a `(refreshed — was N minutes/hours/days old)` parenthetical to the agent's output line so the user sees the staleness signal:
 
-  > ✓ Refreshed `CONTEXT-billing-export.md` (was 4 hours old — 2 new KG decisions and 1 new deferral surfaced this time)
+  > ✓ Refreshed `CONTEXT-billing-export.md` (was 4 hours old — 2 new knowledge graph decisions and 1 new deferral surfaced this time)
 
   The "what changed" callout is high-value when the seed is non-trivially old (≥ 1 hour). If < 5 minutes old, just note "refreshed (was X min old)" without the diff narrative.
 

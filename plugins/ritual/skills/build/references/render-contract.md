@@ -7,13 +7,7 @@ summarize it and link here; they do not own it. When a rule here and an example
 elsewhere conflict, **this file wins** (same precedence the skill already gives
 referenced contracts over local examples).
 
-Why this exists (the failure it closes): render leaks — the agent narrating
-process ("let me load the tool schemas"), stop-reasons ("planning paused per the
-run instructions"), tool/field mechanics ("writing the workspace binding"), or
-echoing markdown code fences around a gate. Enumerating banned phrasings is
-whack-a-mole; this contract inverts that into an **allowlist**: only a small,
-closed set of message shapes may render, and anything else is a leak by
-construction.
+Apply the message shapes below during planning. Report outcomes and decisions in product terms.
 
 ---
 
