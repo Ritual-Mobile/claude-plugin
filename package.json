@@ -1,9 +1,10 @@
 {
   "name": "ritual-claude-plugin",
   "private": true,
-  "description": "Maintainer scripts for the Ritual Claude Code plugin marketplace. Not a published package — the plugin is the artifact.",
+  "description": "Maintainer scripts for the Ritual Claude Code plugin marketplace. Not a published package \u2014 the plugin is the artifact.",
   "license": "MIT",
   "scripts": {
-    "sync": "node scripts/sync-ritual-skill.mjs"
+    "sync": "node scripts/sync-ritual-skill.mjs",
+    "test": "node --test scripts/skill-bundle.test.mjs"
   }
 }

@@ -1,7 +1,7 @@
 {
-  "stamp": "2b4ab1a47f65",
-  "cli_version": "0.36.129",
+  "stamp": "790e5228889b",
+  "cli_version": "0.36.130",
   "channel": "claude-plugin",
-  "upstreamBranch": "dev",
-  "upstreamSha": "9b31c719"
+  "upstreamBranch": "codex/skill-audit-cleanup",
+  "upstreamSha": "b9105101"
 }

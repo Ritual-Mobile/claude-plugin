@@ -16,7 +16,7 @@ The plan mode prompt at the end of `UX-REVIEW.md` is the load-bearing artifact. 
 
 ---
 
-### Methodology (chain of thought — execute in this order)
+### Review procedure (execute in this order)
 
 Do NOT skip to the output schema. Walk these six steps; the schema only gets filled correctly when the analysis upstream is done.
 

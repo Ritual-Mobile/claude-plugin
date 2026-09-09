@@ -14,7 +14,7 @@ Output: a per-file timeline of decisions + deferrals + the explorations they cam
 
 When **not** to use:
 - The user wants to start a new exploration → that's `/ritual build`.
-- The user wants a workspace-wide tour (no specific files in mind) → just ask the agent in plain English; the codebase + KG are reachable via the standard MCP read tools (`list_explorations`, `query_knowledge_graph`, etc.).
+- The user wants a workspace-wide tour (no specific files in mind) → just ask the agent in plain English; the codebase + knowledge graph are reachable via the standard MCP read tools (`list_explorations`, `query_knowledge_graph`, etc.).
 
 ### Input shapes
 
@@ -43,13 +43,13 @@ One recommended action, single escape hatch.
 
 #### Step L1 — Resolve files
 
-Given the user's input shape, produce a final `sources[]` array of file paths. Normalize relative-to-repo-root (the KG stores paths that way).
+Given the user's input shape, produce a final `sources[]` array of file paths. Normalize relative-to-repo-root (the knowledge graph stores paths that way).
 
 If the list ends up empty (e.g. directory glob matched nothing, or the user's pasted code can't be located): surface a clear message and exit — *"I couldn't resolve any files to look up. Try giving me an explicit path."*
 
 #### Step L2 — Query the knowledge graph
 
-Call `mcp__ritual__query_knowledge_graph(workspace_id, sources=[paths])`. This is the same tool `/ritual build`'s Steps 4 / 5 / 10 use for KG injection — the difference here is the user-facing output is the QUERY RESULT, not silent priorContext.
+Call `mcp__ritual__query_knowledge_graph(workspace_id, sources=[paths])`. This is the same tool `/ritual build`'s Steps 4 / 5 / 10 use for knowledge graph injection — the difference here is the user-facing output is the QUERY RESULT, not silent priorContext.
 
 The response shape includes:
 - `decisions[]` — each with `area`, `choice`, `sourceRecommendationId`, `recommendationStatusAtImplementation`, `relatedFiles[]`, `createdAt`, `explorationId`, `explorationName`, `prNumber`/`prUrl` (from the linked `ImplementationRecord`)
@@ -76,22 +76,22 @@ For each file in `sources[]`, render a compact timeline:
 
 ```
 src/oscar/apps/checkout/views.py
-  · 2026-05-12 — Decision: gateway-form branching (RB-6)
+  · — Decision: gateway-form branching (RB-6)
     from "Guest checkout → registration attribution"
-    PR #5012 · status when shipped: approved
-  · 2026-04-28 — Deferral: rate-limit per-tenant [major]
+    an earlier change · status when shipped: approved
+  · — Deferral: rate-limit per-tenant [major]
     from "Multi-tenant rate limiting"
     Open · 14 days old · "out of scope for v1; revisit when traffic >100req/s/tenant"
-  · 2026-03-15 — Decision: session-cookie checkout state
+  · — Decision: session-cookie checkout state
     from "Anonymous checkout v1"
-    PR #4827 · status when shipped: approved
+    an earlier change · status when shipped: approved
 
   Touched by 1 open deferral · 2 logged decisions
 
 src/oscar/apps/order/models.py
-  · 2026-04-30 — Decision: snapshot vs FK on order.user
+  · — Decision: snapshot vs FK on order.user
     from "Guest checkout → registration attribution"
-    PR #5012 · status when shipped: approved
+    an earlier change · status when shipped: approved
 
   Touched by 0 open deferrals · 1 logged decision
 
@@ -145,8 +145,8 @@ No new MCP tools required. `/ritual lineage` is a thin formatter over `query_kno
 
 Same underlying data, opposite direction:
 
-- **Inside `/ritual build`**: lineage flows in as *silent priorContext* — the LLM sees prior decisions + deferrals when synthesizing considerations / problem statement / build brief. The user never sees the raw KG query.
-- **As `/ritual lineage`**: lineage IS the experience. The agent surfaces the raw KG query, formatted, to the user. No LLM synthesis on top.
+- **Inside `/ritual build`**: lineage flows in as *silent priorContext* — the LLM sees prior decisions + deferrals when synthesizing considerations / problem statement / build brief. The user never sees the raw knowledge graph query.
+- **As `/ritual lineage`**: lineage IS the experience. The agent surfaces the raw knowledge graph query, formatted, to the user. No LLM synthesis on top.
 
 When a user is mid-`/ritual build` and wants to drill into one of the prior implementations the brief mentioned, that's the natural moment to suggest: *"Want me to run `/ritual lineage` on these files for full context?"*
 
