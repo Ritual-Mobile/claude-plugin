@@ -4,7 +4,7 @@ Loaded only if `mcp__ritual__score_context_pulse` is unavailable, errors, or the
 
 #### Step CP3 — Compute the dimensions (fallback only)
 
-Skip this step when the preferred path (CP2 — `score_context_pulse`) succeeded — the server returns identical dimension scores. This is the specification for the **fallback path** and the canonical reference for what the server-side scoring engine computes.
+Skip this step when the preferred path (CP2 — `score_context_pulse`) succeeded — the server returns identical dimension scores. Use the **v2** model below for new fallback pulses. The v1 section documents how to read historical pulses; it does not define current scoring.
 
 Use this deterministic table. Each dimension scores 0–100; final score is the weighted sum.
 

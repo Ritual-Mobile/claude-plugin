@@ -31,3 +31,28 @@ test("shared public scrub preserves runtime templates and removes authoring pros
     );
   }
 });
+
+test("missing upstream scrubber leaves the installed bundle untouched", async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync, cpSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { spawnSync } = await import("node:child_process");
+  const temp = mkdtempSync(join(tmpdir(), "ritual-sync-preflight-"));
+  try {
+    const script = join(temp, "plugin/scripts/sync-ritual-skill.mjs");
+    const upstream = join(temp, "upstream");
+    const sentinel = join(temp, "plugin/plugins/ritual/skills/build/SKILL.md");
+    mkdirSync(join(temp, "plugin/scripts"), { recursive: true });
+    mkdirSync(join(upstream, "apps/cli/scripts"), { recursive: true });
+    mkdirSync(join(temp, "plugin/plugins/ritual/skills/build"), { recursive: true });
+    cpSync(new URL("sync-ritual-skill.mjs", import.meta.url), script);
+    writeFileSync(join(upstream, "apps/cli/scripts/build-skills.js"), "throw new Error('must not build');");
+    writeFileSync(sentinel, "existing bundle\n");
+    const result = spawnSync(process.execPath, [script, upstream], { encoding: "utf8" });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /upstream public scrubber missing/);
+    assert.equal(readFileSync(sentinel, "utf8"), "existing bundle\n");
+  } finally {
+    rmSync(temp, { recursive: true, force: true });
+  }
+});

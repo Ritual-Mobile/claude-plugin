@@ -49,6 +49,14 @@ if (!existsSync(builder)) {
   process.exit(1);
 }
 
+// Validate and load the shared scrubber before modifying any plugin files.
+const scrubber = join(upstream, "packages/shared-types/scripts/lib/scrub-public.mjs");
+if (!existsSync(scrubber)) {
+  console.error(`✗ upstream public scrubber missing: ${scrubber}`);
+  process.exit(1);
+}
+const { scrubPublic } = await import(pathToFileURL(scrubber).href);
+
 /*
  * WHICH upstream commit, not just which directory. Building fresh beats a
  * committed artifact (see above), but neither tells you the checkout was
@@ -110,11 +118,7 @@ for (const entry of SHIP) {
   cpSync(from, join(dest, entry), { recursive: true });
 }
 // Public plugins share the upstream scrub policy; keep Markdown indentation intact.
-const { scrubPublic } = await import(
-  pathToFileURL(
-    join(upstream, "packages/shared-types/scripts/lib/scrub-public.mjs"),
-  ).href
-);
+
 for (const file of [
   "SKILL.md",
   ...readdirSync(join(dest, "references"))
@@ -122,7 +126,7 @@ for (const file of [
     .map((name) => `references/${name}`),
 ]) {
   const path = join(dest, file);
-  writeFileSync(path, scrubPublic(readFileSync(path, "utf8"), { tidy: false }));
+  writeFileSync(path, scrubPublic(readFileSync(path, "utf8"), { tidy: false, cleanBlankLines: true }));
 }
 
 // cpSync copies dotfiles inside references/ too — drop Finder junk.
